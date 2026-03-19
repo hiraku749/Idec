@@ -1,1 +1,20 @@
+# dependencies
 node_modules
+/.pnp
+.pnp.js
+
+# production
+/.next
+/out
+
+# env
+.env
+.env.local
+.env.*.local
+
+# debug
+npm-debug.log*
+
+# misc
+.DS_Store
+*.pem
