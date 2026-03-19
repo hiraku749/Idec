@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { NoteCard } from '@/components/notes/note-card'
-import { buttonVariants } from '@/components/ui/button'
 import { formatDate } from '@/lib/utils/format'
 
 export default async function DashboardPage() {
@@ -57,7 +56,10 @@ export default async function DashboardPage() {
             今日は {formatDate(new Date())} です
           </p>
         </div>
-        <Link href="/notes/new" className={buttonVariants()}>
+        <Link
+          href="/notes/new"
+          className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-2.5 hover:bg-primary/80 transition-all"
+        >
           ＋ 新規ノート
         </Link>
       </div>

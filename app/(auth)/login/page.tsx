@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,17 +19,25 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
 
-    if (error) {
-      setError('メールアドレスまたはパスワードが正しくありません')
+    if (!res.ok) {
+      const data = await res.json()
+      if (data.error === 'email_not_confirmed') {
+        setError('メールアドレスが確認されていません。管理者にお問い合わせください。')
+      } else {
+        setError('メールアドレスまたはパスワードが正しくありません')
+      }
       setLoading(false)
       return
     }
 
-    router.push('/dashboard')
     router.refresh()
+    router.push('/dashboard')
   }
 
   return (

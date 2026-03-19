@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,19 +20,29 @@ export default function RegisterPage() {
     setError(null)
     setLoading(true)
 
-    const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: displayName,
-        },
-      },
+    // サーバー側APIで登録（メール確認なしで即完了）
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, displayName }),
     })
 
-    if (error) {
-      setError(error.message)
+    if (!res.ok) {
+      const data = await res.json()
+      setError(data.error ?? '登録に失敗しました')
+      setLoading(false)
+      return
+    }
+
+    // 登録成功 → サーバー側APIでログイン（クッキーを正しく設定するため）
+    const loginRes = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+
+    if (!loginRes.ok) {
+      setError('登録は完了しましたが、ログインに失敗しました。ログインページからサインインしてください。')
       setLoading(false)
       return
     }
