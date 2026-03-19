@@ -1,2 +1,0 @@
-# Idec
-My company product.
