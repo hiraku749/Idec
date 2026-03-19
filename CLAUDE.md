@@ -124,13 +124,19 @@ if (!parsed.success) {
 
 このプロジェクトは shadcn の `base-nova` スタイルを使用。Radix UI ではなく **`@base-ui/react`** がプリミティブとして使われている。
 
-**`Button` コンポーネントに `asChild` プロップは存在しない。** Link をボタンスタイルで使う場合は `buttonVariants()` を使う：
+**`Button` コンポーネントに `asChild` プロップは存在しない。** `buttonVariants()` は `"use client"` モジュールからエクスポートされているため、**サーバーコンポーネントでは使用不可**。
 
-```typescript
-import { buttonVariants } from '@/components/ui/button'
+- **クライアントコンポーネント** — `buttonVariants()` を import して使う
+- **サーバーコンポーネント** — Tailwind クラスを直接書く：
 
-<Link href="/path" className={buttonVariants()}>テキスト</Link>
-<Link href="/path" className={buttonVariants({ variant: 'outline' })}>テキスト</Link>
+```tsx
+{/* サーバーコンポーネント内 */}
+<Link
+  href="/path"
+  className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-2.5 hover:bg-primary/80 transition-all"
+>
+  テキスト
+</Link>
 ```
 
 ---

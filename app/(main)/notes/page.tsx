@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { NoteList } from '@/components/notes/note-list'
 import { SearchBar } from '@/components/shared/search-bar'
-import { buttonVariants } from '@/components/ui/button'
 import type { NoteTag } from '@/types'
 
 interface PageProps {
@@ -46,7 +45,10 @@ export default async function NotesPage({ searchParams }: PageProps) {
           {isDeleted ? 'ゴミ箱' : isArchived ? 'アーカイブ' : 'ノート'}
         </h1>
         {!isDeleted && !isArchived && (
-          <Link href="/notes/new" className={buttonVariants()}>
+          <Link
+            href="/notes/new"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-2.5 hover:bg-primary/80 transition-all"
+          >
             ＋ 新規作成
           </Link>
         )}

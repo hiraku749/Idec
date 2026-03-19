@@ -14,6 +14,11 @@ export async function embedText(text: string): Promise<number[]> {
     return new Array(1536).fill(0)
   }
 
+  if (!process.env.OPENAI_API_KEY) {
+    // APIキー未設定の場合はゼロベクトルを返す（開発時用）
+    return new Array(1536).fill(0)
+  }
+
   const response = await openai.embeddings.create({
     model: 'text-embedding-3-small',
     input: text,

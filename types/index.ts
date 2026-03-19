@@ -75,6 +75,55 @@ export interface AiUsage {
   count: number
 }
 
+// ----- WallSession -----
+
+export interface WallMessage {
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: string
+}
+
+export interface WallSession {
+  id: string
+  user_id: string
+  project_id: string | null
+  ai_type: AiType
+  messages: WallMessage[]
+  summary: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+// ----- Roadmap -----
+
+export interface Roadmap {
+  id: string
+  project_id: string
+  note_id: string | null
+  title: string
+  steps: unknown[]
+  image_url: string | null
+  structured_text: string
+  created_at: string
+  updated_at: string
+}
+
+// ----- Discussion -----
+
+export interface Discussion {
+  id: string
+  user_id: string
+  project_id: string | null
+  note_id: string | null
+  title: string
+  members: string[]
+  invite_link: string | null
+  invite_expires_at: string | null
+  history_summary: string
+  created_at: string
+}
+
 // ----- API レスポンス型 -----
 
 export interface ApiError {

@@ -15,6 +15,7 @@ interface NoteEditorProps {
 
 export function NoteEditor({ content, onChange, editable = true }: NoteEditorProps) {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       TaskList,
