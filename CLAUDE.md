@@ -52,7 +52,9 @@ app/
 │   │   ├── new/page.tsx     # 新規作成
 │   │   └── [id]/page.tsx    # 詳細
 │   ├── settings/page.tsx    # 設定ページ（テーマ・プロフィール）
-│   └── (その他 Phase 4〜 のプレースホルダー)
+│   ├── agent/page.tsx       # OwnAI（チャット型質問応答）
+│   ├── wall/page.tsx        # 壁打ち（セッション付きチャット）
+│   └── (その他 Phase 5〜 のプレースホルダー)
 └── api/
     ├── auth/callback/route.ts
     ├── notes/route.ts
@@ -60,6 +62,8 @@ app/
     ├── notes/[id]/restore/route.ts
     ├── projects/route.ts          # GET/POST
     ├── projects/[id]/route.ts     # GET/PATCH/DELETE
+    ├── agent/route.ts             # POST（OwnAI質問）
+    ├── wall/route.ts              # GET（セッション一覧）/ POST（メッセージ送信）
     └── embed/route.ts
 ```
 
@@ -177,7 +181,7 @@ shadcn の CSS 変数（`--border`, `--ring`, `--primary` 等）を Tailwind ク
 | Phase 1 | 完了 | 認証（メールログイン・登録・ミドルウェア） |
 | Phase 2 | 完了 | ノート CRUD・Tiptap エディタ・ベクトル検索基盤・パイプライン基盤 |
 | Phase 3 | 完了 | ダッシュボード・プロジェクトCRUD・設定ページ・ダークモード・Vitest・CI/CD |
-| Phase 4 | 未着手 | OwnAI エージェント（Claude API + pgvector） |
+| Phase 4 | 完了 | OwnAI エージェント・壁打ち（Claude API + pgvector + チャットUI） |
 | Phase 5 | 未着手 | MVP仕上げ・レスポンシブ・デプロイ |
 
 Google OAuth はタスク化済み・現在スキップ中（Supabase Auth のメールのみ有効）。
