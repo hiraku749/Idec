@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { ChatMessage } from '@/components/ai/chat-message'
 import { ChatInput } from '@/components/ai/chat-input'
 import { AiTypeSelector } from '@/components/ai/ai-type-selector'
+import { ReferencedNotes, type ReferencedNoteInfo } from '@/components/ai/referenced-notes'
 import type { AiType, WallMessage } from '@/types'
 
 interface SessionInfo {
@@ -14,9 +15,15 @@ interface SessionInfo {
   updated_at: string
 }
 
+interface MessageWithRefs extends WallMessage {
+  referencedNotes?: ReferencedNoteInfo[]
+}
+
 export default function WallPage() {
-  const [messages, setMessages] = useState<WallMessage[]>([])
+  const [messages, setMessages] = useState<MessageWithRefs[]>([])
   const [aiType, setAiType] = useState<AiType>('balanced')
+  const [customInstruction, setCustomInstruction] = useState('')
+  const [showSettings, setShowSettings] = useState(false)
   const [sessionId, setSessionId] = useState<string | undefined>()
   const [sessions, setSessions] = useState<SessionInfo[]>([])
   const [sending, setSending] = useState(false)
@@ -65,7 +72,12 @@ export default function WallPage() {
       const res = await fetch('/api/wall', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, sessionId, aiType }),
+        body: JSON.stringify({
+          message,
+          sessionId,
+          aiType,
+          ...(customInstruction.trim() ? { customInstruction: customInstruction.trim() } : {}),
+        }),
       })
 
       const data = await res.json()
@@ -81,7 +93,12 @@ export default function WallPage() {
 
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.reply, timestamp: new Date().toISOString() },
+        {
+          role: 'assistant',
+          content: data.reply,
+          timestamp: new Date().toISOString(),
+          referencedNotes: data.referencedNotes ?? [],
+        },
       ])
 
       // セッションID更新
@@ -136,22 +153,51 @@ export default function WallPage() {
       {/* チャットエリア */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="md:hidden text-sm px-2 py-1 rounded border hover:bg-accent"
-            >
-              📋
-            </button>
-            <div>
-              <h1 className="text-lg font-bold">壁打ち</h1>
-              <p className="text-xs text-muted-foreground">
-                {sessionId ? 'セッション進行中' : '新しいセッション'}
-              </p>
+        <div className="border-b shrink-0">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowSidebar(!showSidebar)}
+                className="md:hidden text-sm px-2 py-1 rounded border hover:bg-accent"
+              >
+                📋
+              </button>
+              <div>
+                <h1 className="text-lg font-bold">壁打ち</h1>
+                <p className="text-xs text-muted-foreground">
+                  {sessionId ? 'セッション進行中' : '新しいセッション'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="text-xs px-2 py-1 rounded border hover:bg-accent transition-colors"
+                title="カスタム指示"
+              >
+                {showSettings ? '閉じる' : '設定'}
+              </button>
+              <AiTypeSelector value={aiType} onChange={setAiType} />
             </div>
           </div>
-          <AiTypeSelector value={aiType} onChange={setAiType} />
+          {showSettings && (
+            <div className="px-4 pb-3">
+              <label className="text-xs text-muted-foreground block mb-1">
+                カスタム指示（AIへの追加指示）
+              </label>
+              <textarea
+                value={customInstruction}
+                onChange={(e) => setCustomInstruction(e.target.value)}
+                placeholder="例: 批判的に意見してください / ビジネス視点で回答してください"
+                className="w-full text-sm rounded-lg border bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+                rows={2}
+                maxLength={1000}
+              />
+              <p className="text-[10px] text-muted-foreground mt-0.5 text-right">
+                {customInstruction.length}/1000
+              </p>
+            </div>
+          )}
         </div>
 
         {/* メッセージエリア */}
@@ -164,7 +210,14 @@ export default function WallPage() {
             </div>
           )}
           {messages.map((msg, i) => (
-            <ChatMessage key={i} role={msg.role} content={msg.content} timestamp={msg.timestamp} />
+            <div key={i}>
+              <ChatMessage role={msg.role} content={msg.content} timestamp={msg.timestamp} />
+              {msg.role === 'assistant' && msg.referencedNotes && msg.referencedNotes.length > 0 && (
+                <div className="ml-11 mt-2">
+                  <ReferencedNotes notes={msg.referencedNotes} />
+                </div>
+              )}
+            </div>
           ))}
           {sending && (
             <div className="flex gap-3">

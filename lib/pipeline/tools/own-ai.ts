@@ -9,11 +9,17 @@ import { notesToContextBlocks } from '../transform'
 import { assembleContext } from '../context'
 import { callAi } from '../ai'
 import { executeOutputAction, incrementUsage } from '../output'
-import type { OwnAiInput, ToolResult } from '../types'
+import type { OwnAiInput, ToolResult, ReferencedNote } from '../types'
+
+/** サマリー生成: コンテンツの先頭部分を抽出 */
+const createSummary = (content: string, maxLength: number = 120): string => {
+  if (content.length <= maxLength) return content
+  return content.slice(0, maxLength).trimEnd() + '…'
+}
 
 export const runOwnAi = async (
   input: OwnAiInput
-): Promise<ToolResult<{ answer: string; noteId?: string }>> => {
+): Promise<ToolResult<{ answer: string; noteId?: string; referencedNotes: ReferencedNote[] }>> => {
   try {
     // 1. 関連ノートをベクトル検索
     const searchResults = await searchNotesByVector({
@@ -22,24 +28,33 @@ export const runOwnAi = async (
       projectId: input.projectId,
     })
 
-    // 2. コンテキストブロックに変換・組み立て
+    // 2. 参照ノート情報を生成（Summary-First）
+    const referencedNotes: ReferencedNote[] = searchResults.map((r) => ({
+      noteId: r.noteId,
+      title: r.title,
+      summary: createSummary(r.content),
+      similarity: r.similarity,
+    }))
+
+    // 3. コンテキストブロックに変換・組み立て
     const blocks = notesToContextBlocks(searchResults, 10)
     const context = assembleContext(blocks, TOKEN_BUDGET['own-ai'])
 
-    // 3. AI呼び出し
+    // 4. AI呼び出し
     const response = await callAi({
       tool: 'own-ai',
       context,
       userMessage: input.query,
       aiType: input.aiType,
+      customInstruction: input.customInstruction,
     })
 
-    // 4. 使用回数カウント
+    // 5. 使用回数カウント
     if (!response.stubbed) {
       await incrementUsage(input.userId)
     }
 
-    // 5. ノートに保存（オプション）
+    // 6. ノートに保存（オプション）
     let noteId: string | undefined
     if (input.saveAsNote) {
       const result = await executeOutputAction(input.userId, {
@@ -54,7 +69,7 @@ export const runOwnAi = async (
 
     return {
       success: true,
-      data: { answer: response.content, noteId },
+      data: { answer: response.content, noteId, referencedNotes },
       tokensUsed: response.tokensUsed,
       stubbed: response.stubbed,
     }

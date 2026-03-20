@@ -4,17 +4,21 @@ import { useState, useRef, useEffect } from 'react'
 import { ChatMessage } from '@/components/ai/chat-message'
 import { ChatInput } from '@/components/ai/chat-input'
 import { AiTypeSelector } from '@/components/ai/ai-type-selector'
+import { ReferencedNotes, type ReferencedNoteInfo } from '@/components/ai/referenced-notes'
 import type { AiType } from '@/types'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp: string
+  referencedNotes?: ReferencedNoteInfo[]
 }
 
 export default function AgentPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [aiType, setAiType] = useState<AiType>('balanced')
+  const [customInstruction, setCustomInstruction] = useState('')
+  const [showSettings, setShowSettings] = useState(false)
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -32,7 +36,11 @@ export default function AgentPage() {
       const res = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, aiType }),
+        body: JSON.stringify({
+          query,
+          aiType,
+          ...(customInstruction.trim() ? { customInstruction: customInstruction.trim() } : {}),
+        }),
       })
 
       const data = await res.json()
@@ -48,7 +56,12 @@ export default function AgentPage() {
 
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.answer, timestamp: new Date().toISOString() },
+        {
+          role: 'assistant',
+          content: data.answer,
+          timestamp: new Date().toISOString(),
+          referencedNotes: data.referencedNotes ?? [],
+        },
       ])
     } catch {
       setMessages((prev) => [
@@ -63,12 +76,41 @@ export default function AgentPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-screen">
       {/* ヘッダー */}
-      <div className="flex items-center justify-between px-6 py-3 border-b shrink-0">
-        <div>
-          <h1 className="text-lg font-bold">OwnAI</h1>
-          <p className="text-xs text-muted-foreground">ノートをナレッジとしてAIに質問</p>
+      <div className="border-b shrink-0">
+        <div className="flex items-center justify-between px-6 py-3">
+          <div>
+            <h1 className="text-lg font-bold">OwnAI</h1>
+            <p className="text-xs text-muted-foreground">ノートをナレッジとしてAIに質問</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="text-xs px-2 py-1 rounded border hover:bg-accent transition-colors"
+              title="カスタム指示"
+            >
+              {showSettings ? '閉じる' : '設定'}
+            </button>
+            <AiTypeSelector value={aiType} onChange={setAiType} />
+          </div>
         </div>
-        <AiTypeSelector value={aiType} onChange={setAiType} />
+        {showSettings && (
+          <div className="px-6 pb-3">
+            <label className="text-xs text-muted-foreground block mb-1">
+              カスタム指示（AIへの追加指示）
+            </label>
+            <textarea
+              value={customInstruction}
+              onChange={(e) => setCustomInstruction(e.target.value)}
+              placeholder="例: 箇条書きで回答してください / 英語で回答してください"
+              className="w-full text-sm rounded-lg border bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+              rows={2}
+              maxLength={1000}
+            />
+            <p className="text-[10px] text-muted-foreground mt-0.5 text-right">
+              {customInstruction.length}/1000
+            </p>
+          </div>
+        )}
       </div>
 
       {/* メッセージエリア */}
@@ -81,7 +123,14 @@ export default function AgentPage() {
           </div>
         )}
         {messages.map((msg, i) => (
-          <ChatMessage key={i} role={msg.role} content={msg.content} timestamp={msg.timestamp} />
+          <div key={i}>
+            <ChatMessage role={msg.role} content={msg.content} timestamp={msg.timestamp} />
+            {msg.role === 'assistant' && msg.referencedNotes && msg.referencedNotes.length > 0 && (
+              <div className="ml-11 mt-2">
+                <ReferencedNotes notes={msg.referencedNotes} />
+              </div>
+            )}
+          </div>
         ))}
         {sending && (
           <div className="flex gap-3">

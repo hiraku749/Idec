@@ -48,9 +48,14 @@ export const callAi = async (request: AiRequest): Promise<AiResponse> => {
 
     const systemPrompt = SYSTEM_PROMPTS[request.aiType] ?? SYSTEM_PROMPTS.balanced
 
+    // カスタム指示文があれば追加
+    const customPart = request.customInstruction
+      ? `\n\n【ユーザーからの追加指示】\n${request.customInstruction}`
+      : ''
+
     const systemContent = contextText
-      ? `${systemPrompt}\n\n以下はユーザーのナレッジベースから取得した関連情報です。回答の参考にしてください：\n\n${contextText}`
-      : systemPrompt
+      ? `${systemPrompt}${customPart}\n\n以下はユーザーのナレッジベースから取得した関連情報です。回答の参考にしてください：\n\n${contextText}`
+      : `${systemPrompt}${customPart}`
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',

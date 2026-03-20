@@ -13,12 +13,18 @@ import {
 import { assembleContext } from '../context'
 import { callAi } from '../ai'
 import { executeOutputAction, incrementUsage } from '../output'
-import type { WallInput, ToolResult } from '../types'
+import type { WallInput, ToolResult, ReferencedNote } from '../types'
 import type { WallMessage } from '@/types'
+
+/** サマリー生成: コンテンツの先頭部分を抽出 */
+const createSummary = (content: string, maxLength: number = 120): string => {
+  if (content.length <= maxLength) return content
+  return content.slice(0, maxLength).trimEnd() + '…'
+}
 
 export const runWall = async (
   input: WallInput
-): Promise<ToolResult<{ reply: string; sessionId: string }>> => {
+): Promise<ToolResult<{ reply: string; sessionId: string; referencedNotes: ReferencedNote[] }>> => {
   try {
     // 1. セッション履歴取得
     const session = await fetchSessionHistory({
@@ -35,27 +41,36 @@ export const runWall = async (
       limit: 3,
     })
 
-    // 3. コンテキスト組み立て
+    // 3. 参照ノート情報を生成（Summary-First: サマリーを優先表示用に生成）
+    const referencedNotes: ReferencedNote[] = searchResults.map((r) => ({
+      noteId: r.noteId,
+      title: r.title,
+      summary: createSummary(r.content),
+      similarity: r.similarity,
+    }))
+
+    // 4. コンテキスト組み立て
     const blocks = [
       ...sessionToContextBlocks(session, 20), // 履歴は高優先度
       ...notesToContextBlocks(searchResults, 10),
     ]
     const context = assembleContext(blocks, TOKEN_BUDGET.wall)
 
-    // 4. AI呼び出し
+    // 5. AI呼び出し
     const response = await callAi({
       tool: 'wall',
       context,
       userMessage: input.message,
       aiType: input.aiType,
+      customInstruction: input.customInstruction,
     })
 
-    // 5. 使用回数カウント
+    // 6. 使用回数カウント
     if (!response.stubbed) {
       await incrementUsage(input.userId)
     }
 
-    // 6. メッセージ追加
+    // 7. メッセージ追加
     const now = new Date().toISOString()
     const newMessages: WallMessage[] = [
       ...session.messages,
@@ -63,7 +78,7 @@ export const runWall = async (
       { role: 'assistant', content: response.content, timestamp: now },
     ]
 
-    // 7. 要約判定
+    // 8. 要約判定
     let summary = session.summary
     if (newMessages.length > WALL_SESSION.summarizeThreshold) {
       // 古いメッセージを要約
@@ -75,7 +90,7 @@ export const runWall = async (
       summary = await summarizeText(existingSummary + oldText, 500)
     }
 
-    // 8. セッション保存
+    // 9. セッション保存
     let sessionId: string
 
     if (session.sessionId) {
@@ -99,7 +114,7 @@ export const runWall = async (
 
     return {
       success: true,
-      data: { reply: response.content, sessionId },
+      data: { reply: response.content, sessionId, referencedNotes },
       tokensUsed: response.tokensUsed,
       stubbed: response.stubbed,
     }

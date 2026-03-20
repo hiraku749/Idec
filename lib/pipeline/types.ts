@@ -62,6 +62,7 @@ export interface AiRequest {
   context: AssembledContext
   userMessage: string
   aiType: AiType
+  customInstruction?: string
 }
 
 export interface AiResponse {
@@ -88,6 +89,7 @@ export interface OwnAiInput {
   aiType: AiType
   projectId?: string
   saveAsNote?: boolean
+  customInstruction?: string
 }
 
 export interface WallInput {
@@ -96,6 +98,15 @@ export interface WallInput {
   sessionId?: string
   projectId?: string
   aiType: AiType
+  customInstruction?: string
+}
+
+/** AIが参照したノートの要約情報 */
+export interface ReferencedNote {
+  noteId: string
+  title: string
+  summary: string
+  similarity: number
 }
 
 export interface EnhanceInput {

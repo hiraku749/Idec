@@ -24,4 +24,5 @@ export type {
   DiagramInput,
   ContextToolInput,
   RoadmapInput,
+  ReferencedNote,
 } from './types'

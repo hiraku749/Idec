@@ -182,7 +182,12 @@ shadcn の CSS 変数（`--border`, `--ring`, `--primary` 等）を Tailwind ク
 | Phase 2 | 完了 | ノート CRUD・Tiptap エディタ・ベクトル検索基盤・パイプライン基盤 |
 | Phase 3 | 完了 | ダッシュボード・プロジェクトCRUD・設定ページ・ダークモード・Vitest・CI/CD |
 | Phase 4 | 完了 | OwnAI エージェント・壁打ち（Claude API + pgvector + チャットUI） |
-| Phase 5 | 未着手 | MVP仕上げ・レスポンシブ・デプロイ |
+| Phase 5 | 進行中 | AIキャラクター壁打ち（ノート参照・Summary-First検索） |
+| Phase 6 | 未着手 | コンテキストエンジニアリング |
+| Phase 7 | 未着手 | 文章増強 |
+| Phase 8 | 未着手 | ロードマップ機能 |
+| Phase 9 | 未着手 | 図式機能 |
+| Phase 10 | 未着手 | ディスカッション |
 
 Google OAuth はタスク化済み・現在スキップ中（Supabase Auth のメールのみ有効）。
 

@@ -8,6 +8,7 @@ const agentSchema = z.object({
   aiType: z.union([z.literal('rational'), z.literal('balanced'), z.literal('ethical')]).default('balanced'),
   projectId: z.string().uuid().optional(),
   saveAsNote: z.boolean().optional().default(false),
+  customInstruction: z.string().max(1000).optional(),
 })
 
 // POST /api/agent — OwnAI質問
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
     aiType: parsed.data.aiType,
     projectId: parsed.data.projectId,
     saveAsNote: parsed.data.saveAsNote,
+    customInstruction: parsed.data.customInstruction,
   })
 
   if (!result.success) {

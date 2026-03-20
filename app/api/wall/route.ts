@@ -8,6 +8,7 @@ const wallSchema = z.object({
   sessionId: z.string().uuid().optional(),
   aiType: z.union([z.literal('rational'), z.literal('balanced'), z.literal('ethical')]).default('balanced'),
   projectId: z.string().uuid().optional(),
+  customInstruction: z.string().max(1000).optional(),
 })
 
 // POST /api/wall — 壁打ちメッセージ送信
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
     sessionId: parsed.data.sessionId,
     aiType: parsed.data.aiType,
     projectId: parsed.data.projectId,
+    customInstruction: parsed.data.customInstruction,
   })
 
   if (!result.success) {
