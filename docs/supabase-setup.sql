@@ -223,3 +223,52 @@ CREATE INDEX IF NOT EXISTS notes_vector_embedding_idx
   ON public.notes
   USING ivfflat (vector_embedding vector_cosine_ops)
   WITH (lists = 100);
+
+-- =================================================
+-- Phase 3: projects テーブルにメタデータカラム追加
+-- =================================================
+
+ALTER TABLE public.projects
+  ADD COLUMN IF NOT EXISTS goal   TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS deadline DATE,
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'planning'
+    CHECK (status IN ('planning', 'active', 'completed', 'archived'));
+
+-- =================================================
+-- match_notes RPC（ベクトル検索用）
+-- lib/pipeline/retrieve/vector-search.ts が依存
+-- =================================================
+
+CREATE OR REPLACE FUNCTION match_notes(
+  query_embedding VECTOR(1536),
+  match_threshold FLOAT DEFAULT 0.5,
+  match_count INT DEFAULT 5,
+  filter_user_id UUID DEFAULT NULL,
+  filter_project_id UUID DEFAULT NULL
+)
+RETURNS TABLE (
+  id UUID,
+  title TEXT,
+  content JSONB,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    n.id,
+    n.title,
+    n.content,
+    1 - (n.vector_embedding <=> query_embedding) AS similarity
+  FROM public.notes n
+  WHERE
+    n.is_deleted = false
+    AND n.vector_embedding IS NOT NULL
+    AND (filter_user_id IS NULL OR n.user_id = filter_user_id)
+    AND (filter_project_id IS NULL OR n.project_id = filter_project_id)
+    AND 1 - (n.vector_embedding <=> query_embedding) > match_threshold
+  ORDER BY n.vector_embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;

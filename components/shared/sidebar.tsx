@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { truncate } from '@/lib/utils/format'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 import type { Note } from '@/types'
 
 interface SidebarProps {
@@ -78,8 +79,21 @@ export function Sidebar({ recentNotes }: SidebarProps) {
         )}
       </nav>
 
-      {/* ログアウト */}
-      <div className="p-3 border-t">
+      {/* 設定・テーマ切替・ログアウト */}
+      <div className="p-3 border-t space-y-0.5">
+        <Link
+          href="/settings"
+          className={cn(
+            'flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',
+            pathname === '/settings'
+              ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+              : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60',
+          )}
+        >
+          <span>⚙️</span>
+          設定
+        </Link>
+        <ThemeToggle />
         <button
           onClick={handleLogout}
           disabled={loggingOut}

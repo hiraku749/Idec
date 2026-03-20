@@ -6,6 +6,7 @@
 export type Plan = 'free' | 'pro'
 export type AiType = 'rational' | 'balanced' | 'ethical'
 export type NoteTag = 'アイデア' | '情報' | 'ToDo'
+export type ProjectStatus = 'planning' | 'active' | 'completed' | 'archived'
 
 // ----- Profile -----
 
@@ -61,9 +62,29 @@ export interface Project {
   user_id: string
   title: string
   description: string
+  goal: string
+  deadline: string | null
+  status: ProjectStatus
   progress_percent: number
   created_at: string
   updated_at: string
+}
+
+export interface CreateProjectInput {
+  title: string
+  description?: string
+  goal?: string
+  deadline?: string
+  status?: ProjectStatus
+}
+
+export interface UpdateProjectInput {
+  title?: string
+  description?: string
+  goal?: string
+  deadline?: string | null
+  status?: ProjectStatus
+  progress_percent?: number
 }
 
 // ----- AiUsage -----

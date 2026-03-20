@@ -21,6 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev          # 開発サーバー起動（localhost:3000）
 npm run build        # 本番ビルド
 npm run lint         # ESLint
+npm run test         # Vitest（ユニットテスト）
 npx tsc --noEmit     # 型チェック（コード変更後は必ず実行）
 ```
 
@@ -46,12 +47,19 @@ app/
 │   │   ├── page.tsx
 │   │   ├── new/page.tsx
 │   │   └── [id]/page.tsx
-│   └── (その他 Phase 3〜10 のプレースホルダー)
+│   ├── projects/            # Phase 3 実装済み
+│   │   ├── page.tsx         # プロジェクト一覧
+│   │   ├── new/page.tsx     # 新規作成
+│   │   └── [id]/page.tsx    # 詳細
+│   ├── settings/page.tsx    # 設定ページ（テーマ・プロフィール）
+│   └── (その他 Phase 4〜 のプレースホルダー)
 └── api/
     ├── auth/callback/route.ts
     ├── notes/route.ts
     ├── notes/[id]/route.ts
     ├── notes/[id]/restore/route.ts
+    ├── projects/route.ts          # GET/POST
+    ├── projects/[id]/route.ts     # GET/PATCH/DELETE
     └── embed/route.ts
 ```
 
@@ -167,8 +175,8 @@ shadcn の CSS 変数（`--border`, `--ring`, `--primary` 等）を Tailwind ク
 |---------|------|------|
 | Phase 0 | 完了 | 環境構築・依存関係・Supabase接続・SQL実行 |
 | Phase 1 | 完了 | 認証（メールログイン・登録・ミドルウェア） |
-| Phase 2 | 完了 | ノート CRUD・Tiptap エディタ・ベクトル検索基盤 |
-| Phase 3 | 未着手 | ダッシュボード・サイドバー・ログアウト |
+| Phase 2 | 完了 | ノート CRUD・Tiptap エディタ・ベクトル検索基盤・パイプライン基盤 |
+| Phase 3 | 完了 | ダッシュボード・プロジェクトCRUD・設定ページ・ダークモード・Vitest・CI/CD |
 | Phase 4 | 未着手 | OwnAI エージェント（Claude API + pgvector） |
 | Phase 5 | 未着手 | MVP仕上げ・レスポンシブ・デプロイ |
 

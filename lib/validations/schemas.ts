@@ -26,3 +26,32 @@ export const updateNoteSchema = z.object({
 
 export type CreateNoteInput = z.infer<typeof createNoteSchema>
 export type UpdateNoteInput = z.infer<typeof updateNoteSchema>
+
+// ----- プロジェクト -----
+
+const projectStatusSchema = z.union([
+  z.literal('planning'),
+  z.literal('active'),
+  z.literal('completed'),
+  z.literal('archived'),
+])
+
+export const createProjectSchema = z.object({
+  title: z.string().min(1, 'タイトルは必須です').max(200, 'タイトルは200文字以内で入力してください'),
+  description: z.string().max(2000).optional().default(''),
+  goal: z.string().max(2000).optional().default(''),
+  deadline: z.string().date().optional(),
+  status: projectStatusSchema.optional().default('planning'),
+})
+
+export const updateProjectSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(2000).optional(),
+  goal: z.string().max(2000).optional(),
+  deadline: z.string().date().nullable().optional(),
+  status: projectStatusSchema.optional(),
+  progress_percent: z.number().int().min(0).max(100).optional(),
+})
+
+export type CreateProjectInput = z.infer<typeof createProjectSchema>
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>
