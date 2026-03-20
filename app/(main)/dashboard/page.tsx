@@ -67,6 +67,7 @@ export default async function DashboardPage() {
   const hasProjects = (projects ?? []).length > 0
   const hasSessions = (wallSessions ?? []).length > 0
   const hasTodos = (todos ?? []).length > 0
+  const isFirstTime = !hasRecentNotes && !hasProjects && !hasSessions
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-8">
@@ -85,6 +86,46 @@ export default async function DashboardPage() {
           ＋ 新規ノート
         </Link>
       </div>
+
+      {/* オンボーディング（初回ユーザー向け） */}
+      {isFirstTime && (
+        <div className="border-2 border-dashed border-primary/30 rounded-xl p-8 text-center bg-primary/5">
+          <p className="text-3xl mb-3">Welcome to Idec!</p>
+          <h2 className="text-lg font-bold mb-2">はじめてのノートを作成してみましょう</h2>
+          <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+            Idecはノート・プロジェクト・AIを統合したナレッジワークスペースです。
+            まずはノートを作成して、あなたのアイデアを記録しましょう。
+          </p>
+          <div className="flex justify-center gap-3">
+            <Link
+              href="/notes/new"
+              className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-medium h-9 px-5 hover:bg-primary/80 transition-all"
+            >
+              最初のノートを作る
+            </Link>
+            <Link
+              href="/projects/new"
+              className="inline-flex items-center justify-center rounded-lg border text-sm font-medium h-9 px-5 hover:bg-accent transition-all"
+            >
+              プロジェクトを作る
+            </Link>
+          </div>
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left max-w-2xl mx-auto">
+            <div className="border rounded-lg p-3 bg-card">
+              <p className="text-sm font-medium mb-1">1. ノートを作成</p>
+              <p className="text-xs text-muted-foreground">アイデアや情報をメモしましょう</p>
+            </div>
+            <div className="border rounded-lg p-3 bg-card">
+              <p className="text-sm font-medium mb-1">2. AIに質問</p>
+              <p className="text-xs text-muted-foreground">OwnAIがあなたのノートを元に回答します</p>
+            </div>
+            <div className="border rounded-lg p-3 bg-card">
+              <p className="text-sm font-medium mb-1">3. プロジェクト化</p>
+              <p className="text-xs text-muted-foreground">アイデアをプロジェクトにして実行に移しましょう</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* サマリーカード */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

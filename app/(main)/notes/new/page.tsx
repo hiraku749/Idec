@@ -1,22 +1,39 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { NoteEditor } from '@/components/notes/note-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { emptyTiptapContent } from '@/lib/utils/tiptap'
 import type { TiptapContent, NoteTag } from '@/types'
 
+interface ProjectOption {
+  id: string
+  title: string
+}
+
 const TAGS: NoteTag[] = ['アイデア', '情報', 'ToDo']
 
 export default function NewNotePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState<TiptapContent>(emptyTiptapContent())
   const [tag, setTag] = useState<NoteTag | null>(null)
+  const [projectId, setProjectId] = useState<string | null>(searchParams.get('projectId'))
+  const [projects, setProjects] = useState<ProjectOption[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/projects')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setProjects(data.map((p: ProjectOption) => ({ id: p.id, title: p.title })))
+      })
+      .catch(() => {})
+  }, [])
 
   async function handleSave() {
     setSaving(true)
@@ -25,7 +42,7 @@ export default function NewNotePage() {
     const res = await fetch('/api/notes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content, tag }),
+      body: JSON.stringify({ title, content, tag, project_id: projectId || undefined }),
     })
 
     if (!res.ok) {
@@ -74,6 +91,20 @@ export default function NewNotePage() {
             {t}
           </button>
         ))}
+      </div>
+
+      {/* プロジェクト選択 */}
+      <div className="mb-4">
+        <select
+          value={projectId ?? ''}
+          onChange={(e) => setProjectId(e.target.value || null)}
+          className="text-sm rounded-md border bg-background px-3 py-1.5 outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">プロジェクトなし</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>{p.title}</option>
+          ))}
+        </select>
       </div>
 
       {/* エディタ */}

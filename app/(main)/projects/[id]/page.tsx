@@ -4,6 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import { NoteCard } from '@/components/notes/note-card'
 import type { ProjectStatus } from '@/types'
 import { ProjectActions } from './project-actions'
+import { LinkNotes } from './link-notes'
 
 const STATUS_LABELS: Record<ProjectStatus, { label: string; color: string }> = {
   planning: { label: '計画中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
@@ -99,6 +100,15 @@ export default async function ProjectDetailPage({
           <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
             <span>📝</span> 紐づくノート
           </h2>
+          <div className="flex items-center gap-2">
+            <LinkNotes projectId={project.id} />
+            <Link
+              href={`/notes/new?projectId=${project.id}`}
+              className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/80 transition-all"
+            >
+              + 新規ノート作成
+            </Link>
+          </div>
         </div>
         {hasNotes ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

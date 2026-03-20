@@ -7,6 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { Note, TiptapContent, NoteTag } from '@/types'
 
+interface ProjectOption {
+  id: string
+  title: string
+}
+
 const TAGS: NoteTag[] = ['アイデア', '情報', 'ToDo']
 
 export default function NoteDetailPage() {
@@ -17,6 +22,8 @@ export default function NoteDetailPage() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState<TiptapContent>({})
   const [tag, setTag] = useState<NoteTag | null>(null)
+  const [projectId, setProjectId] = useState<string | null>(null)
+  const [projects, setProjects] = useState<ProjectOption[]>([])
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -28,17 +35,27 @@ export default function NoteDetailPage() {
         setTitle(data.title)
         setContent(data.content)
         setTag(data.tag)
+        setProjectId(data.project_id ?? null)
         setLoading(false)
       })
       .catch(() => router.push('/notes'))
   }, [id, router])
+
+  useEffect(() => {
+    fetch('/api/projects')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setProjects(data.map((p: ProjectOption) => ({ id: p.id, title: p.title })))
+      })
+      .catch(() => {})
+  }, [])
 
   async function handleSave() {
     setSaving(true)
     await fetch(`/api/notes/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content, tag }),
+      body: JSON.stringify({ title, content, tag, project_id: projectId }),
     })
     setSaving(false)
   }
@@ -107,6 +124,20 @@ export default function NoteDetailPage() {
             {t}
           </button>
         ))}
+      </div>
+
+      {/* プロジェクト選択 */}
+      <div className="mb-4">
+        <select
+          value={projectId ?? ''}
+          onChange={(e) => setProjectId(e.target.value || null)}
+          className="text-sm rounded-md border bg-background px-3 py-1.5 outline-none focus:ring-2 focus:ring-ring"
+        >
+          <option value="">プロジェクトなし</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>{p.title}</option>
+          ))}
+        </select>
       </div>
 
       {/* エディタ */}

@@ -41,11 +41,19 @@ export function ProjectActions({ projectId }: { projectId: string }) {
   }
 
   return (
-    <button
-      onClick={() => setConfirming(true)}
-      className="text-xs text-muted-foreground hover:text-destructive border rounded-md px-2 py-1 transition-colors"
-    >
-      削除
-    </button>
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => router.push(`/projects/${projectId}/edit`)}
+        className="text-xs border rounded-md px-2 py-1 hover:bg-accent transition-colors"
+      >
+        編集
+      </button>
+      <button
+        onClick={() => setConfirming(true)}
+        className="text-xs text-muted-foreground hover:text-destructive border rounded-md px-2 py-1 transition-colors"
+      >
+        削除
+      </button>
+    </div>
   )
 }
