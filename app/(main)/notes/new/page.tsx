@@ -84,8 +84,7 @@ export default function NewNotePage() {
       return
     }
 
-    const note = await res.json()
-    router.push(`/notes/${note.id}`)
+    router.push('/notes')
   }
 
   return (
