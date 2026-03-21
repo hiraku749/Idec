@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { NoteCard } from '@/components/notes/note-card'
+import { FileText } from 'lucide-react'
 import type { ProjectStatus } from '@/types'
 import { ProjectActions } from './project-actions'
 import { LinkNotes } from './link-notes'
+import { ProjectKnowledgeToggle } from '@/components/projects/knowledge-toggle'
 
 const STATUS_LABELS: Record<ProjectStatus, { label: string; color: string }> = {
   planning: { label: '計画中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
@@ -62,7 +64,10 @@ export default async function ProjectDetailPage({
               <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
             )}
           </div>
-          <ProjectActions projectId={project.id} />
+          <div className="flex items-center gap-2 shrink-0">
+            <ProjectKnowledgeToggle projectId={project.id} projectTitle={project.title} />
+            <ProjectActions projectId={project.id} />
+          </div>
         </div>
       </div>
 
@@ -98,7 +103,7 @@ export default async function ProjectDetailPage({
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-            <span>📝</span> 紐づくノート
+            <FileText className="w-4 h-4" /> 紐づくノート
           </h2>
           <div className="flex items-center gap-2">
             <LinkNotes projectId={project.id} />

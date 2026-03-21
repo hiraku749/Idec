@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { emptyTiptapContent, todoTiptapContent } from '@/lib/utils/tiptap'
 import { TemplateSelector } from '@/components/notes/template-selector'
 import type { TiptapContent, NoteTag } from '@/types'
+import { useActiveProject } from '@/lib/hooks/use-active-project'
 
 interface ProjectOption {
   id: string
@@ -19,6 +20,7 @@ const TAGS: NoteTag[] = ['アイデア', '情報', 'ToDo']
 export default function NewNotePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { activeProject } = useActiveProject()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState<TiptapContent>(emptyTiptapContent())
   const [tag, setTag] = useState<NoteTag | null>(null)
@@ -41,6 +43,13 @@ export default function NewNotePage() {
       })
       .catch(() => {})
   }, [])
+
+  // アクティブプロジェクトがあれば自動選択（URLパラメータが優先）
+  useEffect(() => {
+    if (!searchParams.get('projectId') && activeProject) {
+      setProjectId(activeProject.id)
+    }
+  }, [activeProject, searchParams])
 
   function handleTagChange(t: NoteTag) {
     const newTag = tag === t ? null : t

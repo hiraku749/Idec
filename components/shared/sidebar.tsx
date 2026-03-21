@@ -30,8 +30,10 @@ import {
   ChevronRight,
   Zap,
   X,
+  BookOpen,
 } from 'lucide-react'
 import type { Note, NoteTag } from '@/types'
+import { useActiveProject } from '@/lib/hooks/use-active-project'
 
 interface SidebarProps {
   recentNotes: Pick<Note, 'id' | 'title'>[]
@@ -154,6 +156,7 @@ function QuickCaptureButton() {
   const [saving, setSaving] = useState(false)
   const titleRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const { activeProject } = useActiveProject()
 
   const handleOpen = useCallback(() => {
     setOpen(true)
@@ -198,7 +201,12 @@ function QuickCaptureButton() {
       const res = await fetch('/api/notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), content, tag }),
+        body: JSON.stringify({
+          title: title.trim(),
+          content,
+          tag,
+          ...(activeProject ? { project_id: activeProject.id } : {}),
+        }),
       })
       if (res.ok) {
         setOpen(false)
@@ -279,6 +287,12 @@ function QuickCaptureButton() {
                 </button>
               ))}
             </div>
+            {activeProject && (
+              <div className="flex items-center gap-1.5 mb-3 text-xs text-primary bg-primary/5 border border-primary/20 rounded-md px-2 py-1.5">
+                <BookOpen className="w-3 h-3 shrink-0" />
+                <span className="truncate">{activeProject.title} に保存されます</span>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
                 ⌘+Enter で保存 / Esc で閉じる
@@ -302,6 +316,7 @@ export function Sidebar({ recentNotes }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [loggingOut, setLoggingOut] = useState(false)
+  const { activeProject, setActiveProject } = useActiveProject()
 
   async function handleLogout() {
     setLoggingOut(true)
@@ -317,6 +332,28 @@ export function Sidebar({ recentNotes }: SidebarProps) {
       <div className="px-4 py-5 border-b">
         <span className="font-bold text-lg tracking-tight">Idec</span>
       </div>
+
+      {/* アクティブプロジェクト */}
+      {activeProject && (
+        <div className="px-3 py-2 border-b bg-primary/5">
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <BookOpen className="w-3 h-3 shrink-0 text-primary" />
+              <span className="text-[11px] text-primary font-medium truncate">
+                {activeProject.title}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveProject(null)}
+              className="text-[10px] text-primary/60 hover:text-primary shrink-0 transition-colors"
+            >
+              解除
+            </button>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-0.5 pl-4">ナレッジ使用中</p>
+        </div>
+      )}
 
       {/* ナビゲーション */}
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
