@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { Discussion } from '@/types'
 
 export default function DiscussionPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [discussions, setDiscussions] = useState<Discussion[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -17,6 +18,32 @@ export default function DiscussionPage() {
 
   useEffect(() => {
     void fetchDiscussions()
+  }, [])
+
+  // URLに ?join=TOKEN が含まれていれば自動参加
+  useEffect(() => {
+    const token = searchParams.get('join')
+    if (!token) return
+    setJoinToken(token)
+    void (async () => {
+      setJoining(true)
+      setError(null)
+      try {
+        const res = await fetch('/api/discussions/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        })
+        const data = await res.json()
+        if (!res.ok) { setError(typeof data.error === 'string' ? data.error : '参加に失敗しました'); return }
+        router.push(`/discussion/${(data as { discussionId: string }).discussionId}`)
+      } catch {
+        setError('ネットワークエラーが発生しました')
+      } finally {
+        setJoining(false)
+      }
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function fetchDiscussions() {

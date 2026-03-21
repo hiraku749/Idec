@@ -22,7 +22,7 @@ export default function DiscussionRoomPage() {
   const [summarizing, setSummarizing] = useState(false)
   const [summary, setSummary] = useState<string | null>(null)
   const [aiReplying, setAiReplying] = useState(false)
-  const [inviteToken, setInviteToken] = useState<string | null>(null)
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -133,15 +133,17 @@ export default function DiscussionRoomPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(typeof data.error === 'string' ? data.error : '招待リンクの生成に失敗しました'); return }
-      setInviteToken((data as { token: string }).token)
+      const token = (data as { token: string }).token
+      const url = `${window.location.origin}/discussion?join=${token}`
+      setInviteUrl(url)
     } catch {
       setError('ネットワークエラーが発生しました')
     }
   }
 
-  async function handleCopyToken() {
-    if (!inviteToken) return
-    await navigator.clipboard.writeText(inviteToken)
+  async function handleCopyUrl() {
+    if (!inviteUrl) return
+    await navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -210,19 +212,20 @@ export default function DiscussionRoomPage() {
       )}
 
       {/* 招待トークン表示 */}
-      {inviteToken && (
-        <div className="mx-6 mt-2 rounded-lg border bg-muted p-3 flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-medium">招待トークン（24時間有効）</p>
-            <p className="text-xs text-muted-foreground font-mono truncate mt-0.5">{inviteToken}</p>
+      {inviteUrl && (
+        <div className="mx-6 mt-2 rounded-lg border bg-muted p-3 space-y-2">
+          <p className="text-xs font-medium">共有リンク（24時間有効）</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-muted-foreground font-mono truncate flex-1 bg-background border rounded px-2 py-1">{inviteUrl}</p>
+            <button
+              type="button"
+              onClick={() => void handleCopyUrl()}
+              className="text-xs shrink-0 rounded-md border px-3 py-1 hover:bg-accent transition-colors"
+            >
+              {copied ? 'コピー済み！' : 'コピー'}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => void handleCopyToken()}
-            className="text-xs text-primary hover:underline shrink-0"
-          >
-            {copied ? 'コピー済み' : 'コピー'}
-          </button>
+          <p className="text-[10px] text-muted-foreground">このリンクを共有すると、相手がクリックするだけで参加できます</p>
         </div>
       )}
 

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { DailyDigestBanner } from '@/components/shared/daily-digest-banner'
 import { TodoCalendar } from '@/components/shared/todo-calendar'
+import { TodoSection } from '@/components/dashboard/todo-section'
 import type { ProjectStatus } from '@/types'
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -66,13 +67,14 @@ export default async function DashboardPage() {
     .order('updated_at', { ascending: false })
     .limit(3)
 
-  // 未完了 ToDo（ノートのuser_tagsからdue:を取得するためnotesも取得）
+  // 未完了 ToDo
   const { data: todos } = await supabase
     .from('todos')
     .select('id, content, is_done, note_id, created_at')
+    .eq('user_id', user.id)
     .eq('is_done', false)
     .order('created_at', { ascending: false })
-    .limit(5)
+    .limit(10)
 
   // カレンダー用：due: タグ付きノート
   const { data: dueDateNotes } = await supabase
@@ -341,41 +343,24 @@ export default async function DashboardPage() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
             <CheckSquare className="w-4 h-4" /> 未完了の ToDo
+            {hasTodos && (
+              <span className="ml-1 text-xs bg-primary/10 text-primary rounded-full px-1.5 py-0.5">
+                {(todos ?? []).length}
+              </span>
+            )}
           </h2>
           <Link href="/notes?tag=ToDo" className="text-xs text-muted-foreground hover:text-foreground underline">
             すべて見る
           </Link>
         </div>
-        {hasTodos ? (
-          <div className="space-y-2">
-            {(todos ?? []).map((todo) => (
-              <div
-                key={todo.id}
-                className="flex items-start gap-3 p-3 border rounded-md bg-card text-sm"
-              >
-                <CheckSquare className="w-4 h-4 mt-0.5 text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="leading-snug">{todo.content}</p>
-                  <div className="flex items-center gap-3 mt-1">
-                    <Link
-                      href={`/notes/${todo.note_id}`}
-                      className="text-xs text-muted-foreground underline"
-                    >
-                      ノートを開く
-                    </Link>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDate(new Date(todo.created_at))}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground py-6 text-center border rounded-lg">
-            未完了のToDoはありません
-          </p>
-        )}
+        <TodoSection
+          initialTodos={(todos ?? []).map((t) => ({
+            id: t.id,
+            content: t.content,
+            note_id: t.note_id,
+            created_at: t.created_at,
+          }))}
+        />
       </section>
     </div>
   )

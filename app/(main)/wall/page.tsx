@@ -32,13 +32,16 @@ export default function WallPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   // セッション一覧取得
+  async function loadSessions() {
+    const r = await fetch('/api/wall').catch(() => null)
+    if (!r) return
+    const data = await r.json().catch(() => null)
+    if (Array.isArray(data)) setSessions(data)
+  }
+
   useEffect(() => {
-    fetch('/api/wall')
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) setSessions(data)
-      })
-      .catch(() => {})
+    void loadSessions()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // メッセージスクロール
@@ -102,9 +105,10 @@ export default function WallPage() {
         },
       ])
 
-      // セッションID更新
-      if (data.sessionId && !sessionId) {
-        setSessionId(data.sessionId)
+      // セッションID更新 + 一覧リフレッシュ
+      if (data.sessionId) {
+        if (!sessionId) setSessionId(data.sessionId)
+        void loadSessions()
       }
     } catch {
       setMessages((prev) => [
