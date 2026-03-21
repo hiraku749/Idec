@@ -5,7 +5,7 @@ import type { AiType, WallMessage } from '@/types'
 // =================================================
 
 /** パイプラインを利用するツール名 */
-export type ToolName = 'own-ai' | 'wall' | 'context' | 'enhance' | 'diagram' | 'roadmap'
+export type ToolName = 'own-ai' | 'wall' | 'context' | 'enhance' | 'diagram' | 'roadmap' | 'scoring' | 'synthesis' | 'digest' | 'swot' | 'incubator' | 'opponent' | 'simulator'
 
 // ----- Context Assembly -----
 
@@ -132,6 +132,61 @@ export interface RoadmapInput {
   userId: string
   projectId: string
   aiType: AiType
+}
+
+export interface ScoringInput {
+  userId: string
+  noteId: string
+  aiType: AiType
+}
+
+export interface SynthesisInput {
+  userId: string
+  noteIds: string[]
+  aiType: AiType
+}
+
+export interface DigestInput {
+  userId: string
+  aiType: AiType
+}
+
+export interface SwotInput {
+  userId: string
+  noteId: string
+  projectId?: string
+  aiType: AiType
+}
+
+export interface IncubatorInput {
+  userId: string
+  noteId: string
+  aiType: AiType
+}
+
+export type OpponentRole =
+  | 'marketer'
+  | 'engineer'
+  | 'executive'
+  | 'consumer'
+  | 'investor'
+
+export interface OpponentInput {
+  userId: string
+  noteId: string
+  role: OpponentRole
+}
+
+export interface SimulatorMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface SimulatorInput {
+  userId: string
+  persona: string
+  message: string
+  history: SimulatorMessage[]
 }
 
 /** 全ツール共通の実行結果 */

@@ -10,12 +10,19 @@ export const TOKEN_BUDGET = {
   enhance: 3000,
   diagram: 3000,
   roadmap: 5000,
+  scoring: 3000,
+  synthesis: 6000,
+  digest: 4000,
+  swot: 4000,
+  incubator: 4000,
+  opponent: 3000,
+  simulator: 4000,
 } as const
 
 /** プランごとのAI使用回数上限（月あたり） */
 export const PLAN_LIMITS = {
-  free: 50,
-  pro: Infinity,
+  free: 30,
+  pro: 500,
 } as const
 
 /** ベクトル検索のデフォルト設定 */
