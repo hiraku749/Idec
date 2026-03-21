@@ -17,9 +17,32 @@ const createSummary = (content: string, maxLength: number = 120): string => {
   return content.slice(0, maxLength).trimEnd() + '…'
 }
 
+// =================================================
+// [LP撮影用・一時的なデモ返答] ※撮影後に削除すること
+// =================================================
+const DEMO_REPLIES: { match: RegExp; answer: string; notes: ReferencedNote[] }[] = [
+  {
+    match: /今日やること/,
+    answer: 'ノートが見つかりました！今日やることは、上司とのミーティングと、買い出しと勉強です！',
+    notes: [{ noteId: 'demo-1', title: '今日のToDo', summary: '上司とのミーティング、買い出し、勉強', similarity: 0.97 }],
+  },
+  {
+    match: /マーケティング|前のプロジェクト/,
+    answer: '二年度前期マーケティング施策のことですね。あなたは昔、SNSを用いた施策に興味を示していました。深掘りしますか？',
+    notes: [{ noteId: 'demo-2', title: '二年度前期マーケティング施策', summary: 'SNSを用いた施策に関するメモ', similarity: 0.94 }],
+  },
+]
+
 export const runOwnAi = async (
   input: OwnAiInput
 ): Promise<ToolResult<{ answer: string; noteId?: string; referencedNotes: ReferencedNote[] }>> => {
+  // [LP撮影用] デモ返答チェック
+  for (const demo of DEMO_REPLIES) {
+    if (demo.match.test(input.query)) {
+      return { success: true, data: { answer: demo.answer, referencedNotes: demo.notes }, tokensUsed: 0, stubbed: false }
+    }
+  }
+
   try {
     // 1. 関連ノートをベクトル検索
     const searchResults = await searchNotesByVector({
