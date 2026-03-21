@@ -20,35 +20,39 @@ export default function RegisterPage() {
     setError(null)
     setLoading(true)
 
-    // サーバー側APIで登録（メール確認なしで即完了）
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, displayName }),
-    })
+    try {
+      // サーバー側APIで登録（メール確認なしで即完了）
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, displayName }),
+      })
 
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error ?? '登録に失敗しました')
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error ?? '登録に失敗しました')
+        return
+      }
+
+      // 登録成功 → サーバー側APIでログイン（クッキーを正しく設定するため）
+      const loginRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!loginRes.ok) {
+        setError('登録は完了しましたが、ログインに失敗しました。ログインページからサインインしてください。')
+        return
+      }
+
+      router.push('/dashboard')
+      router.refresh()
+    } catch {
+      setError('通信エラーが発生しました。しばらく待ってから再試行してください。')
+    } finally {
       setLoading(false)
-      return
     }
-
-    // 登録成功 → サーバー側APIでログイン（クッキーを正しく設定するため）
-    const loginRes = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-
-    if (!loginRes.ok) {
-      setError('登録は完了しましたが、ログインに失敗しました。ログインページからサインインしてください。')
-      setLoading(false)
-      return
-    }
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   return (

@@ -19,25 +19,30 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
 
-    if (!res.ok) {
-      const data = await res.json()
-      if (data.error === 'email_not_confirmed') {
-        setError('メールアドレスが確認されていません。管理者にお問い合わせください。')
-      } else {
-        setError('メールアドレスまたはパスワードが正しくありません')
+      if (!res.ok) {
+        const data = await res.json()
+        if (data.error === 'email_not_confirmed') {
+          setError('メールアドレスが確認されていません。管理者にお問い合わせください。')
+        } else {
+          setError('メールアドレスまたはパスワードが正しくありません')
+        }
+        return
       }
-      setLoading(false)
-      return
-    }
 
-    router.refresh()
-    router.push('/dashboard')
+      router.refresh()
+      router.push('/dashboard')
+    } catch {
+      setError('通信エラーが発生しました。しばらく待ってから再試行してください。')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
