@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { NoteEditor } from '@/components/notes/note-editor'
+import { NoteEditor, type NoteOption } from '@/components/notes/note-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Pin, PinOff, Trash2, Save, Loader2, ArrowLeft, Timer } from 'lucide-react'
 import { ExportButton } from '@/components/notes/export-button'
 import { Backlinks } from '@/components/notes/backlinks'
 import { VersionDiff } from '@/components/notes/version-diff'
+import { extractWikiLinkIds } from '@/lib/tiptap/wiki-link-extension'
 import type { Note, TiptapContent, NoteTag } from '@/types'
 
 interface ProjectOption {
@@ -33,6 +34,7 @@ export default function NoteDetailPage() {
   const [tag, setTag] = useState<NoteTag | null>(null)
   const [projectId, setProjectId] = useState<string | null>(null)
   const [projects, setProjects] = useState<ProjectOption[]>([])
+  const [noteOptions, setNoteOptions] = useState<NoteOption[]>([])
   const [dueDate, setDueDate] = useState('')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -62,6 +64,26 @@ export default function NoteDetailPage() {
       .catch(() => {})
   }, [])
 
+  // ウィキリンクサジェスト用ノート一覧（自分自身を除く）
+  useEffect(() => {
+    fetch('/api/notes')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setNoteOptions(
+            data
+              .filter((n: { id: string }) => n.id !== id)
+              .map((n: { id: string; title: string; tag: string | null }) => ({
+                id: n.id,
+                label: n.title || '無題のノート',
+                tag: n.tag,
+              })),
+          )
+        }
+      })
+      .catch(() => {})
+  }, [id])
+
   async function handleSave() {
     setSaving(true)
 
@@ -74,6 +96,15 @@ export default function NoteDetailPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, content, tag, project_id: projectId, user_tags: userTags }),
     })
+
+    // ウィキリンクを抽出して note_links を自動同期
+    const wikiLinkIds = extractWikiLinkIds(content as Record<string, unknown>)
+    await fetch('/api/note-links', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sourceNoteId: id, targetNoteIds: wikiLinkIds }),
+    }).catch(() => {}) // リンク同期失敗は保存失敗にしない
+
     setSaving(false)
   }
 
@@ -190,7 +221,7 @@ export default function NoteDetailPage() {
 
       {/* エディタ */}
       <div className="border rounded-lg min-h-[400px] overflow-hidden">
-        <NoteEditor content={content} onChange={setContent} />
+        <NoteEditor content={content} onChange={setContent} noteOptions={noteOptions} />
       </div>
 
       {/* バックリンク */}

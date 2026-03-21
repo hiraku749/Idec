@@ -1,7 +1,9 @@
 'use client'
 
-import { useCallback } from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useCallback, useRef } from 'react'
+import { useEditor, EditorContent, ReactRenderer } from '@tiptap/react'
+import type { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion'
+import tippy, { type Instance } from 'tippy.js'
 // --- 個別拡張（StarterKit を使わず明示的に追加） ---
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -39,18 +41,33 @@ import TextAlign from '@tiptap/extension-text-align'
 import { common, createLowlight } from 'lowlight'
 import { Callout } from '@/lib/tiptap/callout-extension'
 import { Details, DetailsSummary, DetailsContent } from '@/lib/tiptap/details-extension'
+import { WikiLink } from '@/lib/tiptap/wiki-link-extension'
+import {
+  WikiLinkSuggestionList,
+  type WikiLinkSuggestionListRef,
+} from './wiki-link-suggestion-list'
 import { EditorToolbar } from './editor-toolbar'
 import type { TiptapContent } from '@/types'
 
 const lowlight = createLowlight(common)
 
+export interface NoteOption {
+  id: string
+  label: string
+  tag: string | null
+}
+
 interface NoteEditorProps {
   content: TiptapContent
   onChange: (content: TiptapContent) => void
   editable?: boolean
+  noteOptions?: NoteOption[]  // ウィキリンクサジェスト用のノート一覧
 }
 
-export function NoteEditor({ content, onChange, editable = true }: NoteEditorProps) {
+export function NoteEditor({ content, onChange, editable = true, noteOptions = [] }: NoteEditorProps) {
+  const noteOptionsRef = useRef(noteOptions)
+  noteOptionsRef.current = noteOptions
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -97,11 +114,66 @@ export function NoteEditor({ content, onChange, editable = true }: NoteEditorPro
       Details,
       DetailsSummary,
       DetailsContent,
+      // ウィキリンク [[]] サジェスト
+      WikiLink.configure({
+        HTMLAttributes: {},
+        suggestion: {
+          char: '[[',
+          items: ({ query }: { query: string }) => {
+            return noteOptionsRef.current
+              .filter((n) => n.label.toLowerCase().includes(query.toLowerCase()))
+              .slice(0, 8)
+          },
+          render: () => {
+            let component: ReactRenderer<WikiLinkSuggestionListRef>
+            let popup: Instance[]
+
+            return {
+              onStart: (props: SuggestionProps) => {
+                component = new ReactRenderer(WikiLinkSuggestionList, {
+                  props,
+                  editor: props.editor,
+                })
+
+                if (!props.clientRect) return
+
+                popup = tippy('body', {
+                  getReferenceClientRect: props.clientRect as () => DOMRect,
+                  appendTo: () => document.body,
+                  content: component.element,
+                  showOnCreate: true,
+                  interactive: true,
+                  trigger: 'manual',
+                  placement: 'bottom-start',
+                })
+              },
+              onUpdate: (props: SuggestionProps) => {
+                component.updateProps(props)
+                if (!props.clientRect) return
+                popup[0]?.setProps({
+                  getReferenceClientRect: props.clientRect as () => DOMRect,
+                })
+              },
+              onKeyDown: (props: SuggestionKeyDownProps) => {
+                if (props.event.key === 'Escape') {
+                  popup[0]?.hide()
+                  return true
+                }
+                return component.ref?.onKeyDown(props) ?? false
+              },
+              onExit: () => {
+                popup[0]?.destroy()
+                component.destroy()
+              },
+            }
+          },
+        },
+      }),
       // ユーティリティ
       History,
       Dropcursor,
       Gapcursor,
-      Placeholder.configure({ placeholder: 'ここにノートを書いてください...' }),
+      Placeholder.configure({ placeholder: 'ここにノートを書いてください... （[[ でノートリンクを挿入）' }),
     ],
     content: content as Parameters<typeof useEditor>[0]['content'],
     editable,
