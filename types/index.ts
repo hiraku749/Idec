@@ -145,6 +145,70 @@ export interface Discussion {
   created_at: string
 }
 
+// ----- DiscussionMessage -----
+
+export interface DiscussionMessage {
+  id: string
+  discussion_id: string
+  user_id: string
+  display_name: string
+  content: string
+  created_at: string
+}
+
+// ----- NoteScore -----
+
+export interface NoteScore {
+  id: string
+  note_id: string
+  user_id: string
+  feasibility: number
+  impact: number
+  effort: number
+  originality: number
+  ai_comment: string
+  scored_at: string
+}
+
+// ----- Template -----
+
+export interface Template {
+  id: string
+  user_id: string | null
+  title: string
+  description: string
+  content: TiptapContent
+  category: string
+  is_system: boolean
+  created_at: string
+  updated_at: string
+}
+
+// ----- NoteLink -----
+
+export interface NoteLink {
+  id: string
+  source_note_id: string
+  target_note_id: string
+  user_id: string
+  created_at: string
+}
+
+// ----- Incubation -----
+
+export type IncubationStatus = 'incubating' | 'reviewed' | 'cancelled'
+
+export interface Incubation {
+  id: string
+  note_id: string
+  user_id: string
+  start_date: string
+  review_date: string
+  status: IncubationStatus
+  ai_review: Record<string, unknown> | null
+  created_at: string
+}
+
 // ----- API レスポンス型 -----
 
 export interface ApiError {
