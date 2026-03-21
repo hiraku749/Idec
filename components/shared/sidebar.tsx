@@ -32,6 +32,8 @@ import {
   X,
   BookOpen,
   LayoutDashboard,
+  MessageSquare,
+  Users,
 } from 'lucide-react'
 import type { Note, NoteTag } from '@/types'
 import { useActiveProject } from '@/lib/hooks/use-active-project'
@@ -41,10 +43,11 @@ interface SidebarProps {
 }
 
 const MAIN_ITEMS = [
-  { href: '/dashboard', label: 'ホーム',        icon: LayoutDashboard },
-  { href: '/notes',     label: 'ノート',        icon: FileText },
-  { href: '/projects',  label: 'プロジェクト',  icon: FolderKanban },
-  { href: '/agent',     label: 'OwnAI',         icon: Bot },
+  { href: '/dashboard',  label: 'ホーム',        icon: LayoutDashboard },
+  { href: '/notes',      label: 'ノート',        icon: FileText },
+  { href: '/projects',   label: 'プロジェクト',  icon: FolderKanban },
+  { href: '/agent',      label: 'OwnAI',         icon: Bot },
+  { href: '/wall',       label: '壁打ち',        icon: MessageSquare },
 ]
 
 const TOOL_ITEMS = [
@@ -55,14 +58,15 @@ const TOOL_ITEMS = [
 ]
 
 const LAB_ITEMS = [
-  { href: '/opponent',  label: 'AI反対者',            icon: MessageSquareX },
-  { href: '/simulator', label: 'AIシミュレーター',     icon: Cpu },
-  { href: '/scoring',   label: 'アイデアスコアリング', icon: BarChart3 },
-  { href: '/note-links', label: 'ノートリンク',        icon: Link2 },
-  { href: '/synthesis',  label: 'アイデア結合',        icon: Combine },
-  { href: '/swot',       label: '分析ジェネレーター',  icon: FlaskConical },
-  { href: '/incubator',  label: 'インキュベーター',    icon: Timer },
-  { href: '/graph',      label: 'ナレッジグラフ',      icon: Network },
+  { href: '/opponent',    label: 'AI反対者',            icon: MessageSquareX },
+  { href: '/simulator',   label: 'AIシミュレーター',     icon: Cpu },
+  { href: '/discussion',  label: 'ディスカッション',     icon: Users },
+  { href: '/scoring',     label: 'アイデアスコアリング', icon: BarChart3 },
+  { href: '/note-links',  label: 'ノートリンク',        icon: Link2 },
+  { href: '/synthesis',   label: 'アイデア結合',        icon: Combine },
+  { href: '/swot',        label: '分析ジェネレーター',  icon: FlaskConical },
+  { href: '/incubator',   label: 'インキュベーター',    icon: Timer },
+  { href: '/graph',       label: 'ナレッジグラフ',      icon: Network },
 ]
 
 const PREVIEW_COUNT = 3

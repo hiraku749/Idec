@@ -153,6 +153,7 @@ export interface DiscussionMessage {
   user_id: string
   display_name: string
   content: string
+  is_ai: boolean
   created_at: string
 }
 

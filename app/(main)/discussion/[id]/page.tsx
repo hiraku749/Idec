@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Bot } from 'lucide-react'
 import type { Discussion, DiscussionMessage } from '@/types'
 
 export default function DiscussionRoomPage() {
@@ -20,6 +21,7 @@ export default function DiscussionRoomPage() {
   const [sending, setSending] = useState(false)
   const [summarizing, setSummarizing] = useState(false)
   const [summary, setSummary] = useState<string | null>(null)
+  const [aiReplying, setAiReplying] = useState(false)
   const [inviteToken, setInviteToken] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -108,6 +110,20 @@ export default function DiscussionRoomPage() {
     }
   }
 
+  async function handleAiReply() {
+    setAiReplying(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/discussions/${id}/ai-reply`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) { setError(typeof data.error === 'string' ? data.error : 'AI返答に失敗しました'); return }
+    } catch {
+      setError('ネットワークエラーが発生しました')
+    } finally {
+      setAiReplying(false)
+    }
+  }
+
   async function handleInvite() {
     try {
       const res = await fetch(`/api/discussions/${id}/invite`, {
@@ -159,6 +175,15 @@ export default function DiscussionRoomPage() {
           <p className="text-xs text-muted-foreground">{discussion.members.length}人参加中</p>
         </div>
         <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => void handleAiReply()}
+            disabled={aiReplying}
+            className="text-xs rounded-lg border border-primary/30 bg-primary/5 text-primary px-3 py-1.5 hover:bg-primary/10 transition-colors disabled:opacity-50 flex items-center gap-1"
+          >
+            <Bot className="w-3.5 h-3.5" />
+            {aiReplying ? 'AIが考え中...' : 'AIに参加してもらう'}
+          </button>
           <button
             type="button"
             onClick={() => void handleSummarize()}
@@ -218,10 +243,15 @@ export default function DiscussionRoomPage() {
         ) : (
           messages.map((msg) => (
             <div key={msg.id} className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                {msg.is_ai && <Bot className="w-3 h-3 text-primary" />}
                 {msg.display_name} · {new Date(msg.created_at).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
               </span>
-              <div className="rounded-lg border bg-card px-3 py-2 text-sm max-w-[80%]">
+              <div className={`rounded-lg border px-3 py-2 text-sm max-w-[80%] ${
+                msg.is_ai
+                  ? 'bg-primary/5 border-primary/20 text-foreground'
+                  : 'bg-card'
+              }`}>
                 {msg.content}
               </div>
             </div>
