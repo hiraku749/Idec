@@ -31,6 +31,7 @@ import {
   Zap,
   X,
   BookOpen,
+  LayoutDashboard,
 } from 'lucide-react'
 import type { Note, NoteTag } from '@/types'
 import { useActiveProject } from '@/lib/hooks/use-active-project'
@@ -40,9 +41,10 @@ interface SidebarProps {
 }
 
 const MAIN_ITEMS = [
-  { href: '/notes',    label: 'ノート',      icon: FileText },
-  { href: '/projects', label: 'プロジェクト', icon: FolderKanban },
-  { href: '/agent',    label: 'OwnAI',        icon: Bot },
+  { href: '/dashboard', label: 'ホーム',        icon: LayoutDashboard },
+  { href: '/notes',     label: 'ノート',        icon: FileText },
+  { href: '/projects',  label: 'プロジェクト',  icon: FolderKanban },
+  { href: '/agent',     label: 'OwnAI',         icon: Bot },
 ]
 
 const TOOL_ITEMS = [

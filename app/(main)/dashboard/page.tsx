@@ -12,7 +12,8 @@ import {
   Timer,
   Sparkles,
 } from 'lucide-react'
-import { DailyDigest } from '@/components/shared/daily-digest'
+import { DailyDigestBanner } from '@/components/shared/daily-digest-banner'
+import { TodoCalendar } from '@/components/shared/todo-calendar'
 import type { ProjectStatus } from '@/types'
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -40,7 +41,7 @@ export default async function DashboardPage() {
     .order('updated_at', { ascending: false })
     .limit(5)
 
-  // プロジェクト一覧（ステータス付き）
+  // プロジェクト一覧
   const { data: projects } = await supabase
     .from('projects')
     .select('id, title, status, progress_percent, deadline')
@@ -65,7 +66,7 @@ export default async function DashboardPage() {
     .order('updated_at', { ascending: false })
     .limit(3)
 
-  // 未完了 ToDo
+  // 未完了 ToDo（ノートのuser_tagsからdue:を取得するためnotesも取得）
   const { data: todos } = await supabase
     .from('todos')
     .select('id, content, is_done, note_id, created_at')
@@ -73,7 +74,18 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(5)
 
-  // レビュー待ちのインキュベーション
+  // カレンダー用：due: タグ付きノート
+  const { data: dueDateNotes } = await supabase
+    .from('notes')
+    .select('id, title, user_tags')
+    .eq('user_id', user.id)
+    .eq('is_deleted', false)
+    .eq('tag', 'ToDo')
+    .contains('user_tags', ['due:'])
+    .order('updated_at', { ascending: false })
+    .limit(50)
+
+  // インキュベーション通知
   const { data: readyIncubations } = await supabase
     .from('incubations')
     .select('id, note_id, review_date, notes!inner(id, title)')
@@ -88,8 +100,24 @@ export default async function DashboardPage() {
   const hasTodos = (todos ?? []).length > 0
   const isFirstTime = !hasRecentNotes && !hasProjects && !hasSessions
 
+  // due: タグからカレンダーイベントを生成
+  const calendarEvents: { date: string; title: string; noteId: string }[] = []
+  for (const note of dueDateNotes ?? []) {
+    for (const tag of note.user_tags ?? []) {
+      if (tag.startsWith('due:')) {
+        const date = tag.slice(4)
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          calendarEvents.push({ date, title: note.title || '無題', noteId: note.id })
+        }
+      }
+    }
+  }
+
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-8 animate-fade-in-up">
+      {/* デイリーダイアリーバナー */}
+      <DailyDigestBanner />
+
       {/* ウェルカム */}
       <div className="flex items-center justify-between">
         <div>
@@ -171,9 +199,9 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* デイリーダイジェスト + インキュベーション通知 */}
+      {/* ToDoカレンダー + インキュベーション通知 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <DailyDigest />
+        <TodoCalendar events={calendarEvents} />
 
         {(readyIncubations ?? []).length > 0 && (
           <div className="border rounded-xl p-4 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/20">
