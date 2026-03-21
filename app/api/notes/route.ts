@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createNoteSchema } from '@/lib/validations/schemas'
 import { embedText } from '@/lib/pgvector/embed'
 import { tiptapToText } from '@/lib/utils/tiptap'
+import { extractTodosFromContent } from '@/lib/utils/todo-sync'
 
 // GET /api/notes — ノート一覧取得
 export async function GET(request: Request) {
@@ -81,6 +82,20 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // ToDo タグ付きノートの場合、TaskList アイテムを todos テーブルに同期
+  if (tag === 'ToDo' && data) {
+    const todos = extractTodosFromContent(content)
+    if (todos.length > 0) {
+      await supabase.from('todos').insert(
+        todos.map((t) => ({
+          note_id: data.id,
+          content: t.content,
+          is_done: t.is_done,
+        })),
+      )
+    }
   }
 
   return NextResponse.json(data, { status: 201 })

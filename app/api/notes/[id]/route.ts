@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { updateNoteSchema } from '@/lib/validations/schemas'
 import { embedText } from '@/lib/pgvector/embed'
 import { tiptapToText } from '@/lib/utils/tiptap'
+import { extractTodosFromContent } from '@/lib/utils/todo-sync'
 
 type Params = { params: { id: string } }
 
@@ -79,6 +80,24 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (error || !data) {
     return NextResponse.json({ error: error?.message ?? 'ノートが見つかりません' }, { status: 404 })
+  }
+
+  // ToDo タグのノートなら TaskList アイテムを todos テーブルに再同期
+  const noteTag = (updates.tag !== undefined ? updates.tag : data.tag) as string | null
+  const contentForSync = updates.content ?? data.content
+  if (noteTag === 'ToDo' && contentForSync) {
+    // 既存 todos を削除して再挿入（差分管理より確実）
+    await supabase.from('todos').delete().eq('note_id', params.id)
+    const todos = extractTodosFromContent(contentForSync)
+    if (todos.length > 0) {
+      await supabase.from('todos').insert(
+        todos.map((t) => ({
+          note_id: params.id,
+          content: t.content,
+          is_done: t.is_done,
+        })),
+      )
+    }
   }
 
   return NextResponse.json(data)

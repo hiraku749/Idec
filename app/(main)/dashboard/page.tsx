@@ -3,6 +3,16 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { NoteCard } from '@/components/notes/note-card'
 import { formatDate } from '@/lib/utils/format'
+import {
+  FileText,
+  FolderKanban,
+  CheckSquare,
+  MessageSquare,
+  Plus,
+  Timer,
+  Sparkles,
+} from 'lucide-react'
+import { DailyDigest } from '@/components/shared/daily-digest'
 import type { ProjectStatus } from '@/types'
 
 const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -63,6 +73,15 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(5)
 
+  // レビュー待ちのインキュベーション
+  const { data: readyIncubations } = await supabase
+    .from('incubations')
+    .select('id, note_id, review_date, notes!inner(id, title)')
+    .eq('user_id', user.id)
+    .eq('status', 'incubating')
+    .lte('review_date', new Date().toISOString())
+    .limit(5)
+
   const hasRecentNotes = (recentNotes ?? []).length > 0
   const hasProjects = (projects ?? []).length > 0
   const hasSessions = (wallSessions ?? []).length > 0
@@ -70,7 +89,7 @@ export default async function DashboardPage() {
   const isFirstTime = !hasRecentNotes && !hasProjects && !hasSessions
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8">
+    <div className="p-6 max-w-5xl mx-auto space-y-8 animate-fade-in-up">
       {/* ウェルカム */}
       <div className="flex items-center justify-between">
         <div>
@@ -81,9 +100,10 @@ export default async function DashboardPage() {
         </div>
         <Link
           href="/notes/new"
-          className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-2.5 hover:bg-primary/80 transition-all"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-3 hover:bg-primary/80 transition-all active:scale-95"
         >
-          ＋ 新規ノート
+          <Plus className="w-4 h-4" />
+          新規ノート
         </Link>
       </div>
 
@@ -129,7 +149,7 @@ export default async function DashboardPage() {
 
       {/* サマリーカード */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="border rounded-lg p-4 bg-card">
+        <div className="border rounded-lg p-4 bg-card hover:shadow-sm transition-shadow">
           <p className="text-xs text-muted-foreground mb-1">ノート</p>
           <p className="text-xl font-bold">{(recentNotes ?? []).length}</p>
           <p className="text-xs text-muted-foreground">直近の更新</p>
@@ -151,11 +171,37 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* デイリーダイジェスト + インキュベーション通知 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <DailyDigest />
+
+        {(readyIncubations ?? []).length > 0 && (
+          <div className="border rounded-xl p-4 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-950/20">
+            <h2 className="text-sm font-medium flex items-center gap-1.5 mb-3">
+              <Timer className="w-4 h-4 text-purple-500" />
+              レビュー待ちのアイデア（{(readyIncubations ?? []).length}件）
+            </h2>
+            <div className="space-y-2">
+              {(readyIncubations ?? []).map((inc) => (
+                <Link
+                  key={inc.id}
+                  href="/incubator"
+                  className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  {(inc.notes as unknown as { title: string })?.title ?? '無題のノート'}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* 最近のノート */}
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-            <span>📝</span> 最近のノート
+            <FileText className="w-4 h-4" /> 最近のノート
           </h2>
           <Link href="/notes" className="text-xs text-muted-foreground hover:text-foreground underline">
             すべて見る
@@ -169,7 +215,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="text-center py-10 text-muted-foreground border rounded-lg">
-            <p className="text-3xl mb-2">📝</p>
+            <FileText className="w-8 h-8 mx-auto mb-2 opacity-40" />
             <p className="text-sm">まだノートがありません</p>
             <Link href="/notes/new" className="text-xs underline mt-1 inline-block">
               最初のノートを作る
@@ -182,7 +228,7 @@ export default async function DashboardPage() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-            <span>📁</span> プロジェクト
+            <FolderKanban className="w-4 h-4" /> プロジェクト
           </h2>
           <Link href="/projects" className="text-xs text-muted-foreground hover:text-foreground underline">
             すべて見る
@@ -228,7 +274,7 @@ export default async function DashboardPage() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-            <span>💬</span> 最近の壁打ち
+            <MessageSquare className="w-4 h-4" /> 最近の壁打ち
           </h2>
           <Link href="/wall" className="text-xs text-muted-foreground hover:text-foreground underline">
             すべて見る
@@ -242,7 +288,7 @@ export default async function DashboardPage() {
                 className="flex items-start gap-3 p-3 border rounded-md bg-card text-sm"
               >
                 <span className="mt-0.5">
-                  {session.is_active ? '🟢' : '⚪'}
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${session.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'}`} />
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="leading-snug truncate">
@@ -263,32 +309,46 @@ export default async function DashboardPage() {
       </section>
 
       {/* 未完了 ToDo */}
-      {hasTodos && (
-        <section>
-          <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-1.5">
-            <span>✅</span> 未完了の ToDo
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+            <CheckSquare className="w-4 h-4" /> 未完了の ToDo
           </h2>
+          <Link href="/notes?tag=ToDo" className="text-xs text-muted-foreground hover:text-foreground underline">
+            すべて見る
+          </Link>
+        </div>
+        {hasTodos ? (
           <div className="space-y-2">
             {(todos ?? []).map((todo) => (
               <div
                 key={todo.id}
                 className="flex items-start gap-3 p-3 border rounded-md bg-card text-sm"
               >
-                <span className="mt-0.5 text-muted-foreground">◻</span>
+                <CheckSquare className="w-4 h-4 mt-0.5 text-muted-foreground shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="leading-snug">{todo.content}</p>
-                  <Link
-                    href={`/notes/${todo.note_id}`}
-                    className="text-xs text-muted-foreground underline mt-0.5 inline-block"
-                  >
-                    ノートを開く
-                  </Link>
+                  <div className="flex items-center gap-3 mt-1">
+                    <Link
+                      href={`/notes/${todo.note_id}`}
+                      className="text-xs text-muted-foreground underline"
+                    >
+                      ノートを開く
+                    </Link>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(new Date(todo.created_at))}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <p className="text-sm text-muted-foreground py-6 text-center border rounded-lg">
+            未完了のToDoはありません
+          </p>
+        )}
+      </section>
     </div>
   )
 }

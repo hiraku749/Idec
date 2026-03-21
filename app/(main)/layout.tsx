@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/shared/sidebar'
 import { MobileNav } from '@/components/shared/mobile-nav'
+import { QuickCapture } from '@/components/shared/quick-capture'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -43,6 +44,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
           {children}
         </main>
       </div>
+
+      {/* グローバル: クイックキャプチャモーダル（Cmd+Shift+N） */}
+      <QuickCapture />
     </div>
   )
 }

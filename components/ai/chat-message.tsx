@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { User, Bot } from 'lucide-react'
 
 interface ChatMessageProps {
   role: 'user' | 'assistant'
@@ -12,9 +13,9 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
   const isUser = role === 'user'
 
   return (
-    <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
-      <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm bg-secondary">
-        {isUser ? '👤' : '🤖'}
+    <div className={cn('flex gap-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-200', isUser && 'flex-row-reverse')}>
+      <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-secondary">
+        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
       </div>
       <div
         className={cn(

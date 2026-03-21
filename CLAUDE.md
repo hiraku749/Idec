@@ -33,38 +33,34 @@ npx tsc --noEmit     # 型チェック（コード変更後は必ず実行）
 
 ```
 app/
-├── page.tsx                  # ルート（Next.js デフォルト、実質未使用）
-├── layout.tsx                # 全ページ共通レイアウト（フォント・メタデータ）
-├── globals.css               # グローバルCSS（CSS変数定義）
-├── (auth)/                   # 認証前ページ（ミドルウェア対象外）
-│   ├── layout.tsx            # 中央寄せのみ
+├── (auth)/                   # 認証前ページ（URLに影響しない）
 │   ├── login/page.tsx
 │   └── register/page.tsx
 ├── (main)/                   # 認証後ページ（layout.tsx で認証チェック）
-│   ├── layout.tsx            # 認証ガード（未ログイン → /login）
-│   ├── dashboard/page.tsx    # Phase 3 で本実装
-│   ├── notes/                # Phase 2 実装済み
+│   ├── dashboard/page.tsx
+│   ├── notes/                # ノート CRUD
+│   │   ├── page.tsx          # 一覧
+│   │   ├── new/page.tsx      # 新規作成
+│   │   └── [id]/page.tsx     # 詳細・編集
+│   ├── projects/             # プロジェクト CRUD
 │   │   ├── page.tsx
 │   │   ├── new/page.tsx
 │   │   └── [id]/page.tsx
-│   ├── projects/            # Phase 3 実装済み
-│   │   ├── page.tsx         # プロジェクト一覧
-│   │   ├── new/page.tsx     # 新規作成
-│   │   └── [id]/page.tsx    # 詳細
-│   ├── settings/page.tsx    # 設定ページ（テーマ・プロフィール）
-│   ├── agent/page.tsx       # OwnAI（チャット型質問応答）
-│   ├── wall/page.tsx        # 壁打ち（セッション付きチャット）
-│   └── (その他 Phase 5〜 のプレースホルダー)
+│   ├── settings/page.tsx     # テーマ・プロフィール
+│   ├── agent/page.tsx        # OwnAI（チャット型質問応答）
+│   ├── wall/page.tsx         # 壁打ち（セッション付きチャット）
+│   ├── enhance/page.tsx      # 文章増強
+│   ├── roadmap/page.tsx      # ロードマップ生成
+│   ├── context/page.tsx      # コンテキストエンジニアリング
+│   └── diagram/page.tsx      # 図式生成
 └── api/
-    ├── auth/callback/route.ts
-    ├── notes/route.ts
-    ├── notes/[id]/route.ts
-    ├── notes/[id]/restore/route.ts
-    ├── projects/route.ts          # GET/POST
-    ├── projects/[id]/route.ts     # GET/PATCH/DELETE
-    ├── agent/route.ts             # POST（OwnAI質問）
-    ├── wall/route.ts              # GET（セッション一覧）/ POST（メッセージ送信）
-    └── embed/route.ts
+    ├── notes/                # GET/POST, [id]/(GET/PATCH/DELETE), [id]/restore
+    ├── projects/             # GET/POST, [id]/(GET/PATCH/DELETE)
+    ├── agent/route.ts        # POST（OwnAI質問）
+    ├── wall/route.ts         # GET（セッション一覧）/ POST（メッセージ送信）
+    ├── enhance/route.ts      # POST（文章増強）
+    ├── roadmap/route.ts      # POST（ロードマップ生成）
+    └── embed/route.ts        # ベクトル埋め込み
 ```
 
 **ルートグループ `(auth)` / `(main)` はURLに影響しない。** `app/(auth)/login/page.tsx` は `/login` でアクセスできる。
@@ -109,6 +105,45 @@ if (!parsed.success) {
 
 ---
 
+## Tiptap エディタ（リッチテキスト編集）
+
+**重要: StarterKit は使わない。** 個別の拡張を明示的にインポートする。
+
+### 拡張一覧（`components/notes/note-editor.tsx`）
+
+| カテゴリ | 拡張 |
+|---------|------|
+| コア | Document, Paragraph, Text |
+| マーク | Bold, Italic, Strike, Code, Underline, TextStyle, Color, Highlight, Link |
+| ブロック | Heading (1-3), BulletList, OrderedList, ListItem, TaskList, TaskItem, Blockquote, HorizontalRule, CodeBlockLowlight, HardBreak |
+| カスタム | Callout (`lib/tiptap/callout-extension.ts`), Details/DetailsSummary/DetailsContent (`lib/tiptap/details-extension.ts`) |
+| ユーティリティ | History, Dropcursor, Gapcursor, Placeholder |
+
+### カスタム拡張の作り方
+
+`lib/tiptap/` にファイルを作成し、`Node.create()` で定義：
+
+```typescript
+import { Node, mergeAttributes } from '@tiptap/react'
+
+export const MyBlock = Node.create({
+  name: 'myBlock',
+  group: 'block',
+  content: 'block+',
+  // parseHTML / renderHTML を定義
+})
+```
+
+### ツールバーの注意点
+
+`components/notes/editor-toolbar.tsx` でツールバーを実装。重要な設計判断：
+
+- **`onMouseDown` + `e.preventDefault()`** を使う（`onClick` ではなく）。エディタからフォーカスを奪わないため
+- **`editor.on('transaction', handler)`** でエディタ状態変更を購読し、ツールバーの `isActive` 表示をリアルタイム更新
+- カラーピッカー・リンク入力など popup 内の `input`/`select` は `preventDefault` 対象外にする
+
+---
+
 ## ノート保存の仕組み
 
 1. Tiptap エディタが JSON（`TiptapContent = Record<string, unknown>`）を出力
@@ -117,6 +152,58 @@ if (!parsed.success) {
 4. Supabase の `notes` テーブルに `content`（JSONB）と `vector_embedding`（VECTOR(1536)）を保存
 
 ノート更新時は `version_history`（最大20世代）に旧バージョンを蓄積する。
+
+### ToDo 同期
+
+`tag === 'ToDo'` のノートを保存すると、`lib/utils/todo-sync.ts` の `extractTodosFromContent()` が Tiptap JSON 内の TaskList アイテムを再帰抽出し、`todos` テーブルに同期する（更新時は delete + insert で全置換）。ダッシュボードの「未完了 ToDo」セクションはこのテーブルを参照する。
+
+---
+
+## AI パイプラインアーキテクチャ
+
+`lib/pipeline/` に集約された6モジュール構成：
+
+```
+lib/pipeline/
+├── config.ts            # トークン予算・プラン上限・検索デフォルト
+├── ai/client.ts         # Anthropic Claude API クライアント（claude-sonnet-4-20250514）
+├── context/assemble.ts  # 優先度ベースのコンテキスト組み立て（トークン予算内）
+├── retrieve/            # データ取得層
+│   ├── vector-search.ts # pgvector 類似検索
+│   ├── direct-fetch.ts  # ノート・プロジェクト直接取得
+│   └── session-history.ts # 壁打ちセッション履歴取得
+├── transform/           # テキスト処理
+│   ├── tokenizer.ts     # トークン数推定
+│   ├── truncate.ts      # トークン予算でのテキスト切り詰め
+│   └── summarize.ts     # 要約処理
+├── output/              # 結果処理
+│   ├── actions.ts       # ノート作成/更新、セッション更新、ロードマップ保存
+│   └── usage.ts         # AI使用量カウント（checkUsage / incrementUsage）
+└── tools/               # ツール別パイプライン
+    ├── own-ai.ts        # OwnAI（RAG質問応答）
+    ├── wall.ts          # 壁打ち（セッション管理 + 履歴要約）
+    ├── enhance.ts       # 文章増強（上書き/新規保存モード）
+    ├── roadmap.ts       # ロードマップ生成
+    ├── diagram.ts       # 図式生成
+    └── context-tool.ts  # コンテキストエンジニアリング
+```
+
+### プラン上限
+
+```typescript
+// lib/pipeline/config.ts
+PLAN_LIMITS = { free: 30, pro: 500 }  // 月あたりAI使用回数
+```
+
+### AI 人格（3タイプ）
+
+`rational`（論理重視）/ `balanced`（バランス型）/ `ethical`（倫理重視）— ユーザーの `default_ai_type` 設定で切替。各ツールの API Route で AI 人格に応じたシステムプロンプトを適用。
+
+### 壁打ちセッション
+
+- `WALL_SESSION.summarizeThreshold = 20` — 20メッセージ超で古いメッセージを要約
+- `WALL_SESSION.maxMessagesInContext = 10` — コンテキストに含める直近メッセージ数
+- セッションは `wall_sessions` テーブルに永続化、`is_active` フラグで管理
 
 ---
 
@@ -139,17 +226,7 @@ if (!parsed.success) {
 **`Button` コンポーネントに `asChild` プロップは存在しない。** `buttonVariants()` は `"use client"` モジュールからエクスポートされているため、**サーバーコンポーネントでは使用不可**。
 
 - **クライアントコンポーネント** — `buttonVariants()` を import して使う
-- **サーバーコンポーネント** — Tailwind クラスを直接書く：
-
-```tsx
-{/* サーバーコンポーネント内 */}
-<Link
-  href="/path"
-  className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-2.5 hover:bg-primary/80 transition-all"
->
-  テキスト
-</Link>
-```
+- **サーバーコンポーネント** — Tailwind クラスを直接書く
 
 ---
 
@@ -159,7 +236,7 @@ if (!parsed.success) {
 
 shadcn の CSS 変数（`--border`, `--ring`, `--primary` 等）を Tailwind クラスとして使うには `tailwind.config.ts` の `theme.extend.colors` に登録が必要。登録済み。
 
-`@apply border-border` のような CSS 変数ベースのクラスを `@layer base` の `*` セレクターで使うと PostCSS がエラーを出す場合がある。その場合は直接 `border-color: var(--border)` と書く。
+`globals.css` の末尾にエディタ用CSS（`.note-editor-wrapper`, `.tiptap`, `.callout`, `.toggle-block`, syntax highlight classes）が定義されている。エディタのスタイル変更はここで行う。
 
 ---
 
@@ -168,7 +245,7 @@ shadcn の CSS 変数（`--border`, `--ring`, `--primary` 等）を Tailwind ク
 - **TypeScript strict 必須**。`any` 禁止
 - コンポーネントは `function` 宣言、ユーティリティはアロー関数
 - ファイル名は `kebab-case`、コンポーネント名は `PascalCase`
-- Claude API 呼び出しは `lib/claude/` 経由に統一（未実装）
+- Claude API 呼び出しは `lib/pipeline/ai/client.ts` 経由に統一
 - `NEXT_PUBLIC_` 以外の環境変数はクライアントに露出させない
 
 ---
@@ -184,8 +261,8 @@ shadcn の CSS 変数（`--border`, `--ring`, `--primary` 等）を Tailwind ク
 | Phase 4 | 完了 | OwnAI エージェント・壁打ち（Claude API + pgvector + チャットUI） |
 | Phase 5 | 進行中 | AIキャラクター壁打ち（ノート参照・Summary-First検索） |
 | Phase 6 | 未着手 | コンテキストエンジニアリング |
-| Phase 7 | 未着手 | 文章増強 |
-| Phase 8 | 未着手 | ロードマップ機能 |
+| Phase 7 | 完了 | 文章増強（ノート選択・AI増強・保存） |
+| Phase 8 | 完了 | ロードマップ機能（プロジェクト選択・AI生成・DB保存） |
 | Phase 9 | 未着手 | 図式機能 |
 | Phase 10 | 未着手 | ディスカッション |
 
@@ -253,11 +330,6 @@ npm run lint       # ESLint エラーが0件であること
 - **API Route（POST/PATCH）** — 不正なボディで 400 が返ること / 正常なボディで 200/201 が返ること
 - **リダイレクト** — 未ログイン時に `/login` にリダイレクトされること
 - **ブラウザ操作テスト** — Playwright MCP を使ってフォーム入力・ボタンクリック・画面遷移を自動検証する
-
-Playwright MCP が有効な場合（`.mcp.json` が読み込まれている場合）は、ブラウザを実際に操作して以下を確認する：
-- ログイン・登録フォームが正常に動作すること
-- ページ遷移が正しいこと
-- エラー表示が出ないこと
 
 ### 3. Notion に機能ページを作成
 

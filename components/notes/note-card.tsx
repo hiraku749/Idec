@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { formatRelative } from '@/lib/utils/format'
+import { Pin, PinOff, Pencil, Trash2, MoreVertical } from 'lucide-react'
 import type { Note } from '@/types'
 
 interface NoteCardProps {
@@ -46,35 +47,38 @@ export function NoteCard({ note }: NoteCardProps) {
           e.stopPropagation()
           setMenuOpen(!menuOpen)
         }}
-        className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent transition-all text-sm"
+        className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-accent transition-all"
         title="操作メニュー"
       >
-        ︙
+        <MoreVertical className="w-4 h-4" />
       </button>
 
       {/* ドロップダウンメニュー */}
       {menuOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-          <div className="absolute top-9 right-2 z-50 w-36 bg-card border rounded-lg shadow-lg py-1">
+          <div className="absolute top-9 right-2 z-50 w-36 bg-card border rounded-lg shadow-lg py-1 animate-in fade-in-0 zoom-in-95 duration-100">
             <button
               onClick={handlePin}
-              className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors"
+              className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors flex items-center gap-2"
             >
-              {note.is_pinned ? '📌 ピン解除' : '📌 ピン留め'}
+              {note.is_pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+              {note.is_pinned ? 'ピン解除' : 'ピン留め'}
             </button>
             <Link
               href={`/notes/${note.id}`}
-              className="block px-3 py-1.5 text-xs hover:bg-accent transition-colors"
+              className="px-3 py-1.5 text-xs hover:bg-accent transition-colors flex items-center gap-2"
               onClick={() => setMenuOpen(false)}
             >
-              ✏️ 編集
+              <Pencil className="w-3.5 h-3.5" />
+              編集
             </Link>
             <button
               onClick={handleDelete}
-              className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors text-destructive"
+              className="w-full text-left px-3 py-1.5 text-xs hover:bg-accent transition-colors text-destructive flex items-center gap-2"
             >
-              🗑 削除
+              <Trash2 className="w-3.5 h-3.5" />
+              削除
             </button>
           </div>
         </>
@@ -84,7 +88,9 @@ export function NoteCard({ note }: NoteCardProps) {
       <Link href={`/notes/${note.id}`} className="block">
         {/* ピン留めバッジ */}
         {note.is_pinned && (
-          <span className="text-xs text-muted-foreground mb-1 block">📌 ピン留め</span>
+          <span className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+            <Pin className="w-3 h-3" /> ピン留め
+          </span>
         )}
 
         {/* タイトル */}

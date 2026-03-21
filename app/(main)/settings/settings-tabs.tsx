@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { Sun, Moon, Monitor } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 const TABS = [
   { id: 'theme', label: 'テーマ' },
@@ -55,10 +57,10 @@ function ThemeTab() {
 
   if (!mounted) return <div className="h-20" />
 
-  const options = [
-    { value: 'light', label: 'ライト', icon: '☀️' },
-    { value: 'dark', label: 'ダーク', icon: '🌙' },
-    { value: 'system', label: 'システム', icon: '💻' },
+  const options: { value: string; label: string; icon: LucideIcon }[] = [
+    { value: 'light', label: 'ライト', icon: Sun },
+    { value: 'dark', label: 'ダーク', icon: Moon },
+    { value: 'system', label: 'システム', icon: Monitor },
   ]
 
   return (
@@ -70,21 +72,24 @@ function ThemeTab() {
         </p>
       </div>
       <div className="grid grid-cols-3 gap-3">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => setTheme(option.value)}
-            className={cn(
-              'border rounded-lg p-4 text-center transition-all',
-              theme === option.value
-                ? 'border-primary bg-accent'
-                : 'hover:border-primary/50'
-            )}
-          >
-            <p className="text-2xl mb-1">{option.icon}</p>
-            <p className="text-sm font-medium">{option.label}</p>
-          </button>
-        ))}
+        {options.map((option) => {
+          const Icon = option.icon
+          return (
+            <button
+              key={option.value}
+              onClick={() => setTheme(option.value)}
+              className={cn(
+                'border rounded-lg p-4 text-center transition-all duration-150 active:scale-95',
+                theme === option.value
+                  ? 'border-primary bg-accent shadow-sm'
+                  : 'hover:border-primary/50'
+              )}
+            >
+              <Icon className="w-6 h-6 mx-auto mb-1.5 opacity-70" />
+              <p className="text-sm font-medium">{option.label}</p>
+            </button>
+          )
+        })}
       </div>
     </div>
   )

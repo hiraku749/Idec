@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { FolderKanban, Plus } from 'lucide-react'
 import type { ProjectStatus } from '@/types'
 
 const STATUS_LABELS: Record<ProjectStatus, { label: string; color: string }> = {
@@ -34,9 +35,10 @@ export default async function ProjectsPage() {
         </div>
         <Link
           href="/projects/new"
-          className="inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-2.5 hover:bg-primary/80 transition-all"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-3 hover:bg-primary/80 transition-all active:scale-95"
         >
-          ＋ 新規プロジェクト
+          <Plus className="w-4 h-4" />
+          新規プロジェクト
         </Link>
       </div>
 
@@ -88,7 +90,7 @@ export default async function ProjectsPage() {
         </div>
       ) : (
         <div className="text-center py-16 text-muted-foreground border rounded-lg">
-          <p className="text-3xl mb-2">📁</p>
+          <FolderKanban className="w-8 h-8 mx-auto mb-2 opacity-40" />
           <p className="text-sm">まだプロジェクトがありません</p>
           <Link href="/projects/new" className="text-xs underline mt-1 inline-block">
             最初のプロジェクトを作る

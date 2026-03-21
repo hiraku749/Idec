@@ -90,3 +90,370 @@
     @apply font-sans;
   }
 }
+
+/* ===== Note Editor Styles ===== */
+
+.note-editor-wrapper {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* エディタコンテンツ領域 — 全体がクリック可能 */
+.note-editor-content {
+  min-height: 350px;
+  padding: 1rem;
+  cursor: text;
+}
+
+/* Tiptap の contenteditable 要素が親を埋める */
+.note-editor-content .tiptap {
+  min-height: 300px;
+  outline: none;
+}
+
+.note-editor-content .tiptap:focus {
+  outline: none;
+}
+
+/* Tiptap placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Link styling */
+.editor-link {
+  color: oklch(0.623 0.214 259.815);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Code block */
+.tiptap pre {
+  background: oklch(0.205 0 0);
+  color: oklch(0.922 0 0);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.dark .tiptap pre {
+  background: oklch(0.145 0 0);
+  border: 1px solid oklch(1 0 0 / 10%);
+}
+
+.tiptap pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Inline code */
+.tiptap code {
+  background: oklch(0.97 0 0);
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.35rem;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.dark .tiptap code {
+  background: oklch(0.269 0 0);
+}
+
+.tiptap pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Task list (checkbox) */
+.tiptap ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.tiptap ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.tiptap ul[data-type='taskList'] li > label {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.tiptap ul[data-type='taskList'] li > div {
+  flex: 1;
+}
+
+/* Blockquote */
+.tiptap blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Horizontal rule */
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+/* Callout */
+.callout {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: oklch(0.97 0 0);
+  border: 1px solid var(--border);
+  margin: 0.75rem 0;
+}
+
+.dark .callout {
+  background: oklch(0.205 0 0);
+}
+
+.callout-emoji {
+  font-size: 1.25rem;
+  line-height: 1.5;
+  user-select: none;
+}
+
+.callout-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.callout-content p {
+  margin: 0;
+}
+
+/* Toggle (details/summary) */
+.toggle-block {
+  margin: 0.75rem 0;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.toggle-summary {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+  background: oklch(0.97 0 0);
+}
+
+.dark .toggle-summary {
+  background: oklch(0.205 0 0);
+}
+
+.toggle-summary:hover {
+  background: oklch(0.95 0 0);
+}
+
+.dark .toggle-summary:hover {
+  background: oklch(0.24 0 0);
+}
+
+.toggle-content {
+  padding: 0.75rem 1rem;
+}
+
+.toggle-content p {
+  margin: 0;
+}
+
+/* Highlight colors */
+.tiptap mark {
+  border-radius: 0.15rem;
+  padding: 0.05rem 0.1rem;
+}
+
+/* Syntax highlighting (lowlight) */
+.hljs-keyword { color: oklch(0.7 0.15 330); }
+.hljs-string { color: oklch(0.65 0.15 150); }
+.hljs-number { color: oklch(0.7 0.15 60); }
+.hljs-comment { color: oklch(0.55 0 0); font-style: italic; }
+.hljs-function { color: oklch(0.7 0.15 250); }
+.hljs-title { color: oklch(0.7 0.15 250); }
+.hljs-built_in { color: oklch(0.7 0.12 200); }
+.hljs-attr { color: oklch(0.7 0.15 60); }
+.hljs-tag { color: oklch(0.65 0.15 20); }
+.hljs-name { color: oklch(0.65 0.15 20); }
+.hljs-selector-class { color: oklch(0.7 0.15 60); }
+.hljs-selector-id { color: oklch(0.7 0.15 250); }
+.hljs-variable { color: oklch(0.7 0.12 20); }
+.hljs-literal { color: oklch(0.7 0.15 60); }
+.hljs-type { color: oklch(0.7 0.12 200); }
+.hljs-params { color: oklch(0.7 0.12 20); }
+.hljs-meta { color: oklch(0.55 0 0); }
+.hljs-symbol { color: oklch(0.7 0.15 150); }
+
+/* ===== Table Styles ===== */
+
+.tiptap table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.75rem 0;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+}
+
+.tiptap th,
+.tiptap td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  min-width: 80px;
+  position: relative;
+}
+
+.tiptap th {
+  background: oklch(0.97 0 0);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.dark .tiptap th {
+  background: oklch(0.24 0 0);
+}
+
+.tiptap td p,
+.tiptap th p {
+  margin: 0;
+}
+
+/* 選択中のセルをハイライト */
+.tiptap .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: oklch(0.623 0.214 259.815 / 15%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* テーブルリサイズハンドル */
+.tiptap .column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -2px;
+  bottom: -2px;
+  width: 4px;
+  background: oklch(0.623 0.214 259.815);
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.tiptap.resize-cursor {
+  cursor: col-resize;
+}
+
+/* ===== Image Styles ===== */
+
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 0.75rem 0;
+  display: block;
+}
+
+.tiptap img.ProseMirror-selectednode {
+  outline: 2px solid oklch(0.623 0.214 259.815);
+  outline-offset: 2px;
+}
+
+/* ===== Text Alignment ===== */
+
+.tiptap [style*="text-align: center"] { text-align: center; }
+.tiptap [style*="text-align: right"] { text-align: right; }
+.tiptap [style*="text-align: justify"] { text-align: justify; }
+
+/* ===== Animations ===== */
+
+/* Fade-in for page content */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Staggered list animation */
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.15s ease-out both;
+}
+
+/* Cards and list items get staggered entrance */
+.note-editor-wrapper {
+  animation: fade-in-up 0.25s ease-out both;
+}
+
+/* Smooth progress bar transitions */
+.progress-bar-fill {
+  transition: width 0.5s ease-out;
+}
+
+/* Button press feedback */
+.press-effect:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
+}
+
+/* Smooth sidebar hover indicator */
+.nav-active-indicator {
+  transition: all 0.15s ease;
+}

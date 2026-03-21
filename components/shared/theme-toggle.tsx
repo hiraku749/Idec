@@ -2,6 +2,7 @@
 
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { Sun, Moon } from 'lucide-react'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
@@ -15,7 +16,7 @@ export function ThemeToggle() {
         className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground/70"
         disabled
       >
-        <span>🌓</span>
+        <Sun className="w-4 h-4 shrink-0" />
         テーマ
       </button>
     )
@@ -26,9 +27,12 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/60 transition-colors"
+      className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent/60 transition-all duration-150"
     >
-      <span>{isDark ? '☀️' : '🌙'}</span>
+      <div className="relative w-4 h-4 shrink-0">
+        <Sun className={`w-4 h-4 absolute inset-0 transition-all duration-300 ${isDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`} />
+        <Moon className={`w-4 h-4 absolute inset-0 transition-all duration-300 ${isDark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`} />
+      </div>
       {isDark ? 'ライトモード' : 'ダークモード'}
     </button>
   )

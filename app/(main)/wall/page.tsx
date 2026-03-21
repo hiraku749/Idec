@@ -5,6 +5,7 @@ import { ChatMessage } from '@/components/ai/chat-message'
 import { ChatInput } from '@/components/ai/chat-input'
 import { AiTypeSelector } from '@/components/ai/ai-type-selector'
 import { ReferencedNotes, type ReferencedNoteInfo } from '@/components/ai/referenced-notes'
+import { Plus, Bot, List, Loader2, MessageSquare } from 'lucide-react'
 import type { AiType, WallMessage } from '@/types'
 
 interface SessionInfo {
@@ -122,9 +123,10 @@ export default function WallPage() {
         <div className="p-3 border-b">
           <button
             onClick={newSession}
-            className="w-full text-sm rounded-lg bg-primary text-primary-foreground font-medium h-8 hover:bg-primary/80 transition-all"
+            className="w-full text-sm rounded-lg bg-primary text-primary-foreground font-medium h-8 hover:bg-primary/80 transition-all active:scale-95 flex items-center justify-center gap-1.5"
           >
-            ＋ 新規セッション
+            <Plus className="w-4 h-4" />
+            新規セッション
           </button>
         </div>
         <div className="p-2 space-y-0.5">
@@ -138,7 +140,7 @@ export default function WallPage() {
             >
               <p className="truncate">{s.summary || '新規セッション'}</p>
               <p className="text-muted-foreground mt-0.5">
-                {s.is_active ? '🟢' : '⚪'} {s.ai_type}
+                <span className={`inline-block w-2 h-2 rounded-full ${s.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'}`} /> {s.ai_type}
               </p>
             </button>
           ))}
@@ -158,9 +160,9 @@ export default function WallPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowSidebar(!showSidebar)}
-                className="md:hidden text-sm px-2 py-1 rounded border hover:bg-accent"
+                className="md:hidden text-sm px-2 py-1 rounded border hover:bg-accent transition-colors"
               >
-                📋
+                <List className="w-4 h-4" />
               </button>
               <div>
                 <h1 className="text-lg font-bold">壁打ち</h1>
@@ -204,7 +206,7 @@ export default function WallPage() {
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-              <p className="text-4xl mb-3">💬</p>
+              <MessageSquare className="w-10 h-10 mb-3 opacity-30" />
               <p className="text-sm font-medium">壁打ちを始めましょう</p>
               <p className="text-xs mt-1">アイデアを深掘りしたいテーマを入力してください</p>
             </div>
@@ -220,9 +222,12 @@ export default function WallPage() {
             </div>
           ))}
           {sending && (
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm bg-secondary">🤖</div>
-              <div className="bg-card border rounded-lg px-4 py-2.5 text-sm text-muted-foreground animate-pulse">
+            <div className="flex gap-3 animate-in fade-in-0 duration-200">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-secondary">
+                <Bot className="w-4 h-4" />
+              </div>
+              <div className="bg-card border rounded-lg px-4 py-2.5 text-sm text-muted-foreground flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
                 考え中...
               </div>
             </div>

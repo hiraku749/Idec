@@ -42,3 +42,34 @@ export function emptyTiptapContent(): TiptapContent {
     content: [{ type: 'paragraph' }],
   }
 }
+
+/**
+ * ToDo テンプレート — タスクリスト付きの初期コンテンツ
+ */
+export function todoTiptapContent(): TiptapContent {
+  return {
+    type: 'doc',
+    content: [
+      {
+        type: 'taskList',
+        content: [
+          {
+            type: 'taskItem',
+            attrs: { checked: false },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'タスク 1' }] }],
+          },
+          {
+            type: 'taskItem',
+            attrs: { checked: false },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'タスク 2' }] }],
+          },
+          {
+            type: 'taskItem',
+            attrs: { checked: false },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'タスク 3' }] }],
+          },
+        ],
+      },
+    ],
+  }
+}

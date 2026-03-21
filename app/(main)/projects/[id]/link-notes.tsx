@@ -88,7 +88,7 @@ export function LinkNotes({ projectId }: LinkNotesProps) {
                 className="w-full text-left rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors disabled:opacity-50 flex items-center justify-between"
               >
                 <span className="truncate">
-                  {note.tag && <span className="text-xs mr-1.5">{note.tag === 'アイデア' ? '💡' : note.tag === 'ToDo' ? '✅' : '📄'}</span>}
+                  {note.tag && <span className="text-xs mr-1.5 px-1.5 py-0.5 rounded bg-muted">{note.tag}</span>}
                   {note.title || '無題のノート'}
                 </span>
                 {linking === note.id ? (
