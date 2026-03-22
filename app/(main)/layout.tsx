@@ -14,6 +14,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
     redirect('/login')
   }
 
+  // オンボーディング未完了チェック
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('onboarding_done')
+    .eq('id', user.id)
+    .single()
+
+  if (profile && profile.onboarding_done === false) {
+    redirect('/onboarding')
+  }
+
   // 最近のノート（直近5件）をサイドバー用に取得
   const { data: recentNotes } = await supabase
     .from('notes')

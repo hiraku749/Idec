@@ -32,8 +32,10 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
                      request.nextUrl.pathname.startsWith('/register')
   const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
+  const isOverlay = request.nextUrl.pathname.startsWith('/overlay/')
+  const isOnboarding = request.nextUrl.pathname.startsWith('/onboarding')
 
-  if (!user && !isAuthPage && !isApiRoute) {
+  if (!user && !isAuthPage && !isApiRoute && !isOverlay && !isOnboarding) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
