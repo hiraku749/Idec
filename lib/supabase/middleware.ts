@@ -34,8 +34,9 @@ export async function updateSession(request: NextRequest) {
   const isApiRoute = request.nextUrl.pathname.startsWith('/api/')
   const isOverlay = request.nextUrl.pathname.startsWith('/overlay/')
   const isOnboarding = request.nextUrl.pathname.startsWith('/onboarding')
+  const isAuthCallback = request.nextUrl.pathname.startsWith('/auth/callback')
 
-  if (!user && !isAuthPage && !isApiRoute && !isOverlay && !isOnboarding) {
+  if (!user && !isAuthPage && !isApiRoute && !isOverlay && !isOnboarding && !isAuthCallback) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
