@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { truncate } from '@/lib/utils/format'
@@ -34,6 +34,9 @@ import {
   LayoutDashboard,
   MessageSquare,
   Users,
+  Loader2,
+  Mic,
+  Package,
 } from 'lucide-react'
 import type { Note, NoteTag } from '@/types'
 import { useActiveProject } from '@/lib/hooks/use-active-project'
@@ -43,30 +46,32 @@ interface SidebarProps {
 }
 
 const MAIN_ITEMS = [
-  { href: '/dashboard',  label: 'ホーム',        icon: LayoutDashboard },
-  { href: '/notes',      label: 'ノート',        icon: FileText },
-  { href: '/projects',   label: 'プロジェクト',  icon: FolderKanban },
-  { href: '/agent',      label: 'OwnAI',         icon: Bot },
-  { href: '/wall',       label: '壁打ち',        icon: MessageSquare },
+  { href: '/dashboard',  label: 'ホーム',          icon: LayoutDashboard },
+  { href: '/notes',      label: 'ノート',          icon: FileText },
+  { href: '/projects',   label: 'プロジェクト',    icon: FolderKanban },
+  { href: '/agent',      label: 'OwnAI',           icon: Bot },
+  { href: '/wall',       label: 'ブレスト',         icon: MessageSquare },
+  { href: '/packs',      label: 'ナレッジパック',  icon: Package },
 ]
 
 const TOOL_ITEMS = [
-  { href: '/enhance',  label: '文章増強',              icon: Wand2 },
-  { href: '/context',  label: 'コンテキスト',           icon: Code2 },
-  { href: '/diagram',  label: '図式生成',               icon: GitBranch },
-  { href: '/roadmap',  label: 'ロードマップ作成',        icon: Map },
+  { href: '/enhance',    label: 'ブースト',      icon: Wand2 },
+  { href: '/context',    label: '文脈設計',      icon: Code2 },
+  { href: '/diagram',    label: '図解',          icon: GitBranch },
+  { href: '/roadmap',    label: '戦略マップ',    icon: Map },
+  { href: '/voice-box',  label: 'ボイスメモ',    icon: Mic },
 ]
 
 const LAB_ITEMS = [
-  { href: '/opponent',    label: 'AI反対者',            icon: MessageSquareX },
-  { href: '/simulator',   label: 'AIシミュレーター',     icon: Cpu },
-  { href: '/discussion',  label: 'ディスカッション',     icon: Users },
-  { href: '/scoring',     label: 'アイデアスコアリング', icon: BarChart3 },
-  { href: '/note-links',  label: 'ノートリンク',        icon: Link2 },
-  { href: '/synthesis',   label: 'アイデア結合',        icon: Combine },
-  { href: '/swot',        label: '分析ジェネレーター',  icon: FlaskConical },
-  { href: '/incubator',   label: 'インキュベーター',    icon: Timer },
-  { href: '/graph',       label: 'ナレッジグラフ',      icon: Network },
+  { href: '/opponent',    label: '論客',          icon: MessageSquareX },
+  { href: '/simulator',   label: 'シミュレーター', icon: Cpu },
+  { href: '/discussion',  label: '議論室',        icon: Users },
+  { href: '/scoring',     label: 'スコアリング',  icon: BarChart3 },
+  { href: '/note-links',  label: 'リンク',        icon: Link2 },
+  { href: '/synthesis',   label: '統合',          icon: Combine },
+  { href: '/swot',        label: '戦略分析',      icon: FlaskConical },
+  { href: '/incubator',   label: 'インキュベーター', icon: Timer },
+  { href: '/graph',       label: 'グラフ',        icon: Network },
 ]
 
 const PREVIEW_COUNT = 3
@@ -85,21 +90,29 @@ function NavItem({
   pathname: string
   small?: boolean
 }) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const active = pathname === href || pathname.startsWith(href + '/')
+
   return (
-    <Link
-      href={href}
+    <button
+      type="button"
+      onClick={() => startTransition(() => router.push(href))}
       className={cn(
-        'flex items-center gap-2.5 rounded-md px-3 transition-all duration-150',
+        'w-full flex items-center gap-2.5 rounded-md px-3 transition-all duration-150 active:scale-95',
         small ? 'py-1.5 text-xs' : 'py-2 text-sm',
         active
           ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
           : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:translate-x-0.5',
       )}
     >
-      <Icon className={cn('shrink-0', small ? 'w-3.5 h-3.5' : 'w-4 h-4')} />
+      {isPending ? (
+        <Loader2 className={cn('shrink-0 animate-spin', small ? 'w-3.5 h-3.5' : 'w-4 h-4')} />
+      ) : (
+        <Icon className={cn('shrink-0', small ? 'w-3.5 h-3.5' : 'w-4 h-4')} />
+      )}
       {label}
-    </Link>
+    </button>
   )
 }
 
