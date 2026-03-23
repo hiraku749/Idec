@@ -6,6 +6,7 @@ import { z } from 'zod'
 const roadmapSchema = z.object({
   projectId: z.string().uuid(),
   aiType: z.union([z.literal('rational'), z.literal('balanced'), z.literal('ethical')]).default('balanced'),
+  customInstruction: z.string().max(500).optional(),
 })
 
 // POST /api/roadmap — ロードマップ生成
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
     userId: user.id,
     projectId: parsed.data.projectId,
     aiType: parsed.data.aiType,
+    customInstruction: parsed.data.customInstruction,
   })
 
   if (!result.success) {

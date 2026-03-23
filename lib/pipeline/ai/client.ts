@@ -1,8 +1,8 @@
 // =================================================
-// AIクライアント（Anthropic Claude API）
+// AIクライアント（OpenAI GPT-4o API）
 // =================================================
 
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import type { AiRequest, AiResponse } from '../types'
 
 /** AI人格ごとのシステムプロンプト */
@@ -29,24 +29,27 @@ const SYSTEM_PROMPTS: Record<string, string> = {
 
 /**
  * AI呼び出し
- * ANTHROPIC_API_KEY が設定されていない場合はスタブレスポンスを返す
+ * OPENAI_API_KEY が設定されていない場合はスタブレスポンスを返す
  */
 export const callAi = async (request: AiRequest): Promise<AiResponse> => {
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.OPENAI_API_KEY
 
   if (!apiKey) {
     return createStubResponse(request)
   }
 
   try {
-    const client = new Anthropic({ apiKey })
+    const client = new OpenAI({ apiKey })
 
     // コンテキストブロックをメッセージに変換
     const contextText = request.context.blocks
       .map((b) => `【${b.label}】\n${b.content}`)
       .join('\n\n')
 
-    const systemPrompt = SYSTEM_PROMPTS[request.aiType] ?? SYSTEM_PROMPTS.balanced
+    // カスタム人格のシステムプロンプトがあれば優先、なければデフォルト
+    const systemPrompt = request.systemPromptOverride
+      ?? SYSTEM_PROMPTS[request.aiType]
+      ?? SYSTEM_PROMPTS.balanced
 
     // カスタム指示文があれば追加
     const customPart = request.customInstruction
@@ -57,27 +60,26 @@ export const callAi = async (request: AiRequest): Promise<AiResponse> => {
       ? `${systemPrompt}${customPart}\n\n以下はユーザーのナレッジベースから取得した関連情報です。回答の参考にしてください：\n\n${contextText}`
       : `${systemPrompt}${customPart}`
 
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const response = await client.chat.completions.create({
+      model: 'gpt-4o',
       max_tokens: 2048,
-      system: systemContent,
-      messages: [{ role: 'user', content: request.userMessage }],
+      messages: [
+        { role: 'system', content: systemContent },
+        { role: 'user', content: request.userMessage },
+      ],
     })
 
-    const content = response.content
-      .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
-      .join('\n')
+    const content = response.choices[0]?.message?.content ?? ''
 
     return {
       content,
-      tokensUsed: (response.usage.input_tokens ?? 0) + (response.usage.output_tokens ?? 0),
+      tokensUsed: (response.usage?.prompt_tokens ?? 0) + (response.usage?.completion_tokens ?? 0),
       model: response.model,
       stubbed: false,
     }
   } catch (err) {
     // APIエラー時はスタブにフォールバック
-    console.error('[callAi] Anthropic API error:', err)
+    console.error('[callAi] OpenAI API error:', err)
     return createStubResponse(request)
   }
 }

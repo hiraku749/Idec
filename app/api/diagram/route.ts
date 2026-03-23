@@ -10,6 +10,10 @@ const diagramSchema = z.object({
     z.literal('markdown-outline'),
     z.literal('structured-text'),
   ]),
+  aiType: z
+    .union([z.literal('rational'), z.literal('balanced'), z.literal('ethical')])
+    .default('rational'),
+  customInstruction: z.string().max(500).optional(),
 })
 
 // POST /api/diagram — 図式生成
@@ -30,6 +34,8 @@ export async function POST(request: Request) {
     userId: user.id,
     noteId: parsed.data.noteId,
     format: parsed.data.format,
+    aiType: parsed.data.aiType,
+    customInstruction: parsed.data.customInstruction,
   })
 
   if (!result.success) {

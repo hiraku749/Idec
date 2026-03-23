@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useReducer, type MouseEvent } from 'react'
+import { useState, useCallback, useEffect, useReducer, useRef, type MouseEvent } from 'react'
 import type { Editor } from '@tiptap/react'
 import {
   Bold,
@@ -37,7 +37,11 @@ import {
   Columns3,
   RowsIcon,
   Trash2,
+  Mic,
+  MicOff,
+  ScanText,
 } from 'lucide-react'
+import { useSpeechInput } from '@/lib/hooks/use-speech-input'
 
 interface EditorToolbarProps {
   editor: Editor
@@ -125,8 +129,55 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   const [showTableMenu, setShowTableMenu] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const interimRef = useRef('')
 
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0)
+
+  // 音声入力: 確定テキストをエディタに挿入
+  const handleSpeechResult = useCallback((text: string) => {
+    // 暫定テキストが表示されていれば先に削除してから確定テキストを挿入
+    editor.chain().focus().insertContent(text + '。').run()
+    interimRef.current = ''
+  }, [editor])
+
+  const { status: speechStatus, start: startSpeech, isSupported: speechSupported } = useSpeechInput({
+    onResult: handleSpeechResult,
+  })
+
+  // OCR: 画像ファイルを選択してテキスト抽出
+  const [ocrLoading, setOcrLoading] = useState(false)
+  const ocrInputRef = useRef<HTMLInputElement>(null)
+
+  const handleOcrFile = useCallback(async (file: File) => {
+    setOcrLoading(true)
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result as string
+          resolve(result.split(',')[1] ?? '')
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+
+      const mediaType = file.type as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+      const res = await fetch('/api/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, mediaType }),
+      })
+      const data = await res.json() as { text?: string }
+      if (data.text && data.text !== 'テキストなし') {
+        editor.chain().focus().insertContent('\n' + data.text + '\n').run()
+      }
+    } catch {
+      // OCR失敗は静かに処理
+    } finally {
+      setOcrLoading(false)
+      if (ocrInputRef.current) ocrInputRef.current.value = ''
+    }
+  }, [editor])
 
   useEffect(() => {
     const handler = () => forceUpdate()
@@ -551,6 +602,63 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       <ToolbarButton onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} title="書式クリア">
         <RemoveFormatting size={iconSize} />
       </ToolbarButton>
+
+      {/* 音声入力 */}
+      {speechSupported && (
+        <>
+          <Divider />
+          <button
+            type="button"
+            title={speechStatus === 'listening' ? '録音停止' : '音声入力'}
+            onMouseDown={(e) => {
+              e.preventDefault()
+              startSpeech()
+            }}
+            className={`p-1.5 rounded-md transition-colors flex items-center gap-1 text-xs font-medium ${
+              speechStatus === 'listening'
+                ? 'bg-red-500 text-white animate-pulse shadow-sm'
+                : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
+            }`}
+          >
+            {speechStatus === 'listening' ? (
+              <><MicOff size={iconSize} /> 停止</>
+            ) : (
+              <><Mic size={iconSize} /></>
+            )}
+          </button>
+        </>
+      )}
+
+      {/* 画像OCR */}
+      <>
+        <input
+          ref={ocrInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/gif,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) void handleOcrFile(file)
+          }}
+        />
+        <button
+          type="button"
+          title="画像からテキストを読み取り（OCR）"
+          disabled={ocrLoading}
+          onMouseDown={(e) => {
+            e.preventDefault()
+            ocrInputRef.current?.click()
+          }}
+          className={`p-1.5 rounded-md transition-colors flex items-center gap-1 text-xs font-medium ${
+            ocrLoading
+              ? 'text-muted-foreground opacity-60 cursor-wait'
+              : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground'
+          }`}
+        >
+          <ScanText size={iconSize} />
+          {ocrLoading && <span>解析中...</span>}
+        </button>
+      </>
 
       {/* Code block language selector (contextual) */}
       {editor.isActive('codeBlock') && (

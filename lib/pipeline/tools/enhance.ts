@@ -43,6 +43,7 @@ export const runEnhance = async (
       context,
       userMessage: 'この文章をより明確で読みやすく増強してください。元の意図を保ちつつ、表現を改善してください。',
       aiType: input.aiType,
+      customInstruction: input.customInstruction,
     })
 
     // 4. 使用回数カウント

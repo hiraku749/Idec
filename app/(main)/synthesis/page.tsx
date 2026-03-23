@@ -17,6 +17,7 @@ export default function SynthesisPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ noteId: string; content: string } | null>(null)
+  const [customInstruction, setCustomInstruction] = useState('')
 
   useEffect(() => {
     fetch('/api/notes')
@@ -42,7 +43,7 @@ export default function SynthesisPage() {
       const res = await fetch('/api/synthesis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ noteIds: selectedIds }),
+        body: JSON.stringify({ noteIds: selectedIds, ...(customInstruction.trim() ? { customInstruction: customInstruction.trim() } : {}) }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -98,6 +99,18 @@ export default function SynthesisPage() {
             )
           })}
         </div>
+      </div>
+
+      <div className="mb-4">
+        <label className="text-sm font-medium block mb-1.5">追加指示（任意）</label>
+        <textarea
+          value={customInstruction}
+          onChange={(e) => setCustomInstruction(e.target.value)}
+          placeholder="例: 箇条書きで / 英語で / 具体例を含めて"
+          className="w-full text-sm rounded-lg border bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+          rows={2}
+          maxLength={500}
+        />
       </div>
 
       <Button

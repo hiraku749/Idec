@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Zap, X } from 'lucide-react'
+import { toast } from 'sonner'
 import type { NoteTag } from '@/types'
 
 const TAGS: NoteTag[] = ['アイデア', '情報', 'ToDo']
@@ -73,7 +74,12 @@ export function QuickCapture() {
       if (res.ok) {
         setOpen(false)
         router.refresh()
+        toast.success('ノートを保存しました')
+      } else {
+        toast.error('ノートの保存に失敗しました')
       }
+    } catch {
+      toast.error('ノートの保存中にエラーが発生しました')
     } finally {
       setSaving(false)
     }

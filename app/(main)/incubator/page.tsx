@@ -29,6 +29,7 @@ export default function IncubatorPage() {
   const [loading, setLoading] = useState(true)
   const [reviewing, setReviewing] = useState<string | null>(null)
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null)
+  const [customInstruction, setCustomInstruction] = useState('')
 
   const load = () => {
     fetch('/api/incubator')
@@ -50,7 +51,7 @@ export default function IncubatorPage() {
       const res = await fetch('/api/incubator', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ incubationId }),
+        body: JSON.stringify({ incubationId, ...(customInstruction.trim() ? { customInstruction: customInstruction.trim() } : {}) }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -83,6 +84,21 @@ export default function IncubatorPage() {
       </p>
 
       {loading && <p className="text-sm text-muted-foreground">読み込み中...</p>}
+
+      {/* 追加指示 */}
+      {ready.length > 0 && (
+        <div className="mb-6">
+          <label className="text-sm font-medium block mb-1.5">追加指示（任意）</label>
+          <textarea
+            value={customInstruction}
+            onChange={(e) => setCustomInstruction(e.target.value)}
+            placeholder="例: 箇条書きで / 英語で / 具体例を含めて"
+            className="w-full text-sm rounded-lg border bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+            rows={2}
+            maxLength={500}
+          />
+        </div>
+      )}
 
       {/* レビュー可能 */}
       {ready.length > 0 && (

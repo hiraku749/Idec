@@ -133,6 +133,24 @@ export default function AgentPage() {
             <Bot className="w-10 h-10 mb-3 opacity-30" />
             <p className="text-sm font-medium">OwnAIに質問してみましょう</p>
             <p className="text-xs mt-1">あなたのノートをナレッジとして回答します</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6 w-full max-w-xl">
+              {[
+                { emoji: '\u{1F4DD}', text: '最近のノートを要約して' },
+                { emoji: '\u{1F4A1}', text: '新しいアイデアの方向性を提案して' },
+                { emoji: '\u{1F50D}', text: 'プロジェクトの進捗をまとめて' },
+                { emoji: '\u{1F9E0}', text: 'この分野のトレンドを教えて' },
+              ].map((prompt) => (
+                <button
+                  key={prompt.text}
+                  type="button"
+                  onClick={() => handleSend(`${prompt.emoji} ${prompt.text}`)}
+                  className="rounded-lg border bg-card px-3 py-3 text-left text-sm transition-colors hover:bg-accent hover:border-primary/30 active:scale-[0.98]"
+                >
+                  <span className="text-base">{prompt.emoji}</span>
+                  <p className="text-xs mt-1 text-foreground leading-snug">{prompt.text}</p>
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((msg, i) => (

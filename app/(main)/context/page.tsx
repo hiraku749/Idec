@@ -38,6 +38,7 @@ export default function ContextPage() {
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [customInstruction, setCustomInstruction] = useState('')
 
   useEffect(() => {
     async function fetchNotes() {
@@ -71,7 +72,7 @@ export default function ContextPage() {
       const res = await fetch('/api/context', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ noteIds: selectedNoteIds, goal }),
+        body: JSON.stringify({ noteIds: selectedNoteIds, goal, ...(customInstruction.trim() ? { customInstruction: customInstruction.trim() } : {}) }),
       })
 
       const data = await res.json()
@@ -101,7 +102,7 @@ export default function ContextPage() {
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       {/* ヘッダー */}
       <div>
-        <h1 className="text-2xl font-bold">コンテキストエンジニアリング</h1>
+        <h1 className="text-2xl font-bold">文脈設計</h1>
         <p className="text-sm text-muted-foreground mt-1">
           ノートの内容をAIが整理・変換します。プロンプト生成・簡潔化・再構成から選択してください
         </p>
@@ -202,6 +203,21 @@ export default function ContextPage() {
           </div>
         )}
       </div>
+
+      {/* 追加指示 */}
+      {selectedNoteIds.length > 0 && (
+        <div>
+          <label className="text-sm font-medium block mb-1.5">追加指示（任意）</label>
+          <textarea
+            value={customInstruction}
+            onChange={(e) => setCustomInstruction(e.target.value)}
+            placeholder="例: 箇条書きで / 英語で / 具体例を含めて"
+            className="w-full text-sm rounded-lg border bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+            rows={2}
+            maxLength={500}
+          />
+        </div>
+      )}
 
       {/* 実行ボタン */}
       {selectedNoteIds.length > 0 && (

@@ -6,6 +6,7 @@ import { NoteEditor, type NoteOption } from '@/components/notes/note-editor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Pin, PinOff, Trash2, Save, Loader2, ArrowLeft, Timer } from 'lucide-react'
+import { toast } from 'sonner'
 import { ExportButton } from '@/components/notes/export-button'
 import { Backlinks } from '@/components/notes/backlinks'
 import { VersionDiff } from '@/components/notes/version-diff'
@@ -87,25 +88,36 @@ export default function NoteDetailPage() {
   async function handleSave() {
     setSaving(true)
 
-    // user_tags に期日を含める
-    const existingTags = (note?.user_tags ?? []).filter((t) => !t.startsWith('due:'))
-    const userTags = dueDate ? [...existingTags, `due:${dueDate}`] : existingTags
+    try {
+      // user_tags に期日を含める
+      const existingTags = (note?.user_tags ?? []).filter((t) => !t.startsWith('due:'))
+      const userTags = dueDate ? [...existingTags, `due:${dueDate}`] : existingTags
 
-    await fetch(`/api/notes/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, content, tag, project_id: projectId, user_tags: userTags }),
-    })
+      const res = await fetch(`/api/notes/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content, tag, project_id: projectId, user_tags: userTags }),
+      })
 
-    // ウィキリンクを抽出して note_links を自動同期
-    const wikiLinkIds = extractWikiLinkIds(content as Record<string, unknown>)
-    await fetch('/api/note-links', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sourceNoteId: id, targetNoteIds: wikiLinkIds }),
-    }).catch(() => {}) // リンク同期失敗は保存失敗にしない
+      if (!res.ok) {
+        toast.error('ノートの保存に失敗しました')
+        return
+      }
 
-    setSaving(false)
+      // ウィキリンクを抽出して note_links を自動同期
+      const wikiLinkIds = extractWikiLinkIds(content as Record<string, unknown>)
+      await fetch('/api/note-links', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sourceNoteId: id, targetNoteIds: wikiLinkIds }),
+      }).catch(() => {}) // リンク同期失敗は保存失敗にしない
+
+      toast.success('ノートを保存しました')
+    } catch {
+      toast.error('ノートの保存中にエラーが発生しました')
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleTogglePin() {

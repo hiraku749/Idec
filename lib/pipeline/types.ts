@@ -63,6 +63,7 @@ export interface AiRequest {
   userMessage: string
   aiType: AiType
   customInstruction?: string
+  systemPromptOverride?: string  // カスタム人格のシステムプロンプト（これがあれば aiType より優先）
 }
 
 export interface AiResponse {
@@ -99,6 +100,7 @@ export interface WallInput {
   projectId?: string
   aiType: AiType
   customInstruction?: string
+  systemPromptOverride?: string
 }
 
 /** AIが参照したノートの要約情報 */
@@ -114,36 +116,44 @@ export interface EnhanceInput {
   noteId: string
   aiType: AiType
   mode: 'replace' | 'new-note'
+  customInstruction?: string
 }
 
 export interface DiagramInput {
   userId: string
   noteId: string
   format: 'mermaid' | 'markdown-outline' | 'structured-text'
+  aiType: AiType
+  customInstruction?: string
 }
 
 export interface ContextToolInput {
   userId: string
   noteIds: string[]
   goal: 'prompt-engineering' | 'condense' | 'restructure'
+  aiType: AiType
+  customInstruction?: string
 }
 
 export interface RoadmapInput {
   userId: string
   projectId: string
   aiType: AiType
+  customInstruction?: string
 }
 
 export interface ScoringInput {
   userId: string
   noteId: string
   aiType: AiType
+  customInstruction?: string
 }
 
 export interface SynthesisInput {
   userId: string
   noteIds: string[]
   aiType: AiType
+  customInstruction?: string
 }
 
 export interface DigestInput {
@@ -156,12 +166,14 @@ export interface SwotInput {
   noteId: string
   projectId?: string
   aiType: AiType
+  customInstruction?: string
 }
 
 export interface IncubatorInput {
   userId: string
   noteId: string
   aiType: AiType
+  customInstruction?: string
 }
 
 export type OpponentRole =

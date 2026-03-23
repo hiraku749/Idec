@@ -260,11 +260,22 @@ shadcn の CSS 変数（`--border`, `--ring`, `--primary` 等）を Tailwind ク
 | Phase 3 | 完了 | ダッシュボード・プロジェクトCRUD・設定ページ・ダークモード・Vitest・CI/CD |
 | Phase 4 | 完了 | OwnAI エージェント・壁打ち（Claude API + pgvector + チャットUI） |
 | Phase 5 | 進行中 | AIキャラクター壁打ち（ノート参照・Summary-First検索） |
-| Phase 6 | 未着手 | コンテキストエンジニアリング |
+| Phase 6 | 完了 | コンテキストエンジニアリング（複数ノート選択・目的別AI処理） |
 | Phase 7 | 完了 | 文章増強（ノート選択・AI増強・保存） |
 | Phase 8 | 完了 | ロードマップ機能（プロジェクト選択・AI生成・DB保存） |
-| Phase 9 | 未着手 | 図式機能 |
-| Phase 10 | 未着手 | ディスカッション |
+| Phase 9 | 完了 | 図式生成（Mermaid・フローチャート・マインドマップ） |
+| Phase 10 | 完了 | スコアリング（アイデア4軸AIスコアリング・レーダーチャート） |
+| Phase 11 | 完了 | SWOT分析（AIによる4象限分析） |
+| Phase 12 | 完了 | シンセシス（複数ノート統合分析・レポート生成） |
+| Phase 13 | 完了 | インキュベーター（アイデアAIレビュー・育成管理） |
+| Phase 14 | 完了 | グラフ（ノート・プロジェクト関係のネットワーク視覚化） |
+| Phase 15 | 完了 | デイリーダイジェスト（24時間活動要約・今日のタスク提案） |
+| Phase 16 | 完了 | エクスポート（Markdown / テキスト / HTML ダウンロード） |
+| Phase 17 | 完了 | バックリンク（ノート間の前方・後方リンク表示） |
+| Phase 18 | 完了 | テンプレート機能（議事録・アイデア出し等のシステムテンプレート） |
+| Phase 19 | 完了 | クイックキャプチャ（Cmd+Shift+N でのメモ即時保存モーダル） |
+| Phase 20 | 完了 | プロジェクトナレッジ連携（knowledge-toggle・ツール/ラボへの自動適用） |
+| Phase 21 | 未着手 | ディスカッション（AI＋人間の混合・招待・履歴保存） |
 
 Google OAuth はタスク化済み・現在スキップ中（Supabase Auth のメールのみ有効）。
 
@@ -376,9 +387,12 @@ git push origin main
 
 ## MCP・Notion 連携
 
-Notion タスク管理は `mcp__notion-mcp__*` ツールを使う（`mcp__claude_ai_Notion__*` はワークスペース不一致のため使えない）。
+Notion タスク管理は **`mcp__claude_ai_Notion__*`** ツールを使う。
 
-詳細な操作方法・データソースIDは `/Users/ogurahiraku/Desktop/Idec/Notion.md` を参照。
+主要なデータソースID：
+- ロードマップ DB: `collection://0d46a1cb-7042-4e99-9c88-5b33bc083477`
+- 意思決定ログ: `collection://6562bc59-00d2-4e9d-baf2-2d83dc60f22d`
+- Idec MVP ダッシュボード: `eeeee33e-205b-45fe-aa1d-94abc652ba19`
 
 **毎回の会話終了前に Notion を更新すること：**
 - ロードマップのフェーズステータス・進捗率

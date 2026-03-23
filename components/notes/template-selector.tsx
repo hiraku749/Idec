@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileText, FolderOpen, X } from 'lucide-react'
+import { FileText, FolderOpen, X, Search } from 'lucide-react'
 import { SYSTEM_TEMPLATES, type SystemTemplate } from '@/lib/templates/system-templates'
 import type { TiptapContent, Template } from '@/types'
 
@@ -24,6 +24,7 @@ const CATEGORIES: Record<string, string> = {
 
 export function TemplateSelector({ open, onClose, onSelect }: TemplateSelectorProps) {
   const [category, setCategory] = useState('all')
+  const [search, setSearch] = useState('')
   const [userTemplates, setUserTemplates] = useState<Template[]>([])
 
   useEffect(() => {
@@ -39,15 +40,26 @@ export function TemplateSelector({ open, onClose, onSelect }: TemplateSelectorPr
     }
   }, [open])
 
+  // モーダルを開くたびに検索をリセット
+  useEffect(() => {
+    if (open) setSearch('')
+  }, [open])
+
   if (!open) return null
 
-  const filteredSystem = category === 'all'
-    ? SYSTEM_TEMPLATES
-    : SYSTEM_TEMPLATES.filter((t) => t.category === category)
+  const matchesSearch = (t: SystemTemplate | Template) => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)
+  }
 
-  const filteredUser = category === 'all'
-    ? userTemplates
-    : userTemplates.filter((t) => t.category === category)
+  const filteredSystem = SYSTEM_TEMPLATES
+    .filter((t) => category === 'all' || t.category === category)
+    .filter(matchesSearch)
+
+  const filteredUser = userTemplates
+    .filter((t) => category === 'all' || t.category === category)
+    .filter(matchesSearch)
 
   function handleSelect(template: SystemTemplate | Template) {
     onSelect(template.content as TiptapContent, template.title)
@@ -67,6 +79,28 @@ export function TemplateSelector({ open, onClose, onSelect }: TemplateSelectorPr
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* 検索 */}
+        <div className="px-4 py-2 border-b">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="テンプレートを検索..."
+              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-md border bg-background outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground/50"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* カテゴリフィルタ */}
@@ -134,7 +168,7 @@ export function TemplateSelector({ open, onClose, onSelect }: TemplateSelectorPr
 
           {filteredSystem.length === 0 && filteredUser.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-8">
-              このカテゴリにテンプレートはありません
+              {search ? `"${search}" に一致するテンプレートはありません` : 'このカテゴリにテンプレートはありません'}
             </p>
           )}
         </div>

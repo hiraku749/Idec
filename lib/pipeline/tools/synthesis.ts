@@ -59,6 +59,7 @@ export const runSynthesis = async (
         '次のステップとして取るべき具体的な行動',
       ].join('\n'),
       aiType: input.aiType,
+      customInstruction: input.customInstruction,
     })
 
     if (!response.stubbed) {

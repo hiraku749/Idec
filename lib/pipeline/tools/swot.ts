@@ -79,6 +79,7 @@ export const runSwot = async (
         '{"strengths": ["強み1", "強み2", "強み3"], "weaknesses": ["弱み1", "弱み2"], "opportunities": ["機会1", "機会2"], "threats": ["脅威1", "脅威2"]}',
       ].join('\n'),
       aiType: input.aiType,
+      customInstruction: input.customInstruction,
     })
 
     if (!response.stubbed) {

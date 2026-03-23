@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChatMessage } from '@/components/ai/chat-message'
 import { ChatInput } from '@/components/ai/chat-input'
-import { AiTypeSelector } from '@/components/ai/ai-type-selector'
+import { PersonaSelector } from '@/components/ai/persona-selector'
 import { ReferencedNotes, type ReferencedNoteInfo } from '@/components/ai/referenced-notes'
 import { Plus, Bot, List, Loader2, MessageSquare } from 'lucide-react'
 import type { AiType, WallMessage } from '@/types'
@@ -23,6 +23,8 @@ interface MessageWithRefs extends WallMessage {
 export default function WallPage() {
   const [messages, setMessages] = useState<MessageWithRefs[]>([])
   const [aiType, setAiType] = useState<AiType>('balanced')
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string>('balanced')
+  const [systemPromptOverride, setSystemPromptOverride] = useState<string | undefined>()
   const [customInstruction, setCustomInstruction] = useState('')
   const [showSettings, setShowSettings] = useState(false)
   const [sessionId, setSessionId] = useState<string | undefined>()
@@ -81,6 +83,8 @@ export default function WallPage() {
           sessionId,
           aiType,
           ...(customInstruction.trim() ? { customInstruction: customInstruction.trim() } : {}),
+          // カスタム人格の場合はpersonaIdを送る（APIがsystemPromptを解決）
+          ...(systemPromptOverride ? { personaId: selectedPersonaId } : {}),
         }),
       })
 
@@ -169,7 +173,7 @@ export default function WallPage() {
                 <List className="w-4 h-4" />
               </button>
               <div>
-                <h1 className="text-lg font-bold">壁打ち</h1>
+                <h1 className="text-lg font-bold">ブレスト</h1>
                 <p className="text-xs text-muted-foreground">
                   {sessionId ? 'セッション進行中' : '新しいセッション'}
                 </p>
@@ -181,9 +185,19 @@ export default function WallPage() {
                 className="text-xs px-2 py-1 rounded border hover:bg-accent transition-colors"
                 title="カスタム指示"
               >
-                {showSettings ? '閉じる' : '設定'}
+                {showSettings ? '閉じる' : '指示'}
               </button>
-              <AiTypeSelector value={aiType} onChange={setAiType} />
+              <PersonaSelector
+                selectedId={selectedPersonaId}
+                onSelect={(id, prompt) => {
+                  setSelectedPersonaId(id)
+                  setSystemPromptOverride(prompt)
+                  // builtin の場合は aiType も合わせる
+                  if (id === 'rational' || id === 'balanced' || id === 'ethical') {
+                    setAiType(id as AiType)
+                  }
+                }}
+              />
             </div>
           </div>
           {showSettings && (
@@ -213,6 +227,24 @@ export default function WallPage() {
               <MessageSquare className="w-10 h-10 mb-3 opacity-30" />
               <p className="text-sm font-medium">壁打ちを始めましょう</p>
               <p className="text-xs mt-1">アイデアを深掘りしたいテーマを入力してください</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-6 w-full max-w-xl">
+                {[
+                  { emoji: '\u{1F680}', text: '新規事業のアイデアをブレストしたい' },
+                  { emoji: '\u{1F3AF}', text: 'この課題の解決策を一緒に考えて' },
+                  { emoji: '\u{1F4CA}', text: '競合との差別化ポイントを整理したい' },
+                  { emoji: '\u{1F504}', text: 'このプロセスの改善案を出して' },
+                ].map((prompt) => (
+                  <button
+                    key={prompt.text}
+                    type="button"
+                    onClick={() => handleSend(`${prompt.emoji} ${prompt.text}`)}
+                    className="rounded-lg border bg-card px-3 py-3 text-left text-sm transition-colors hover:bg-accent hover:border-primary/30 active:scale-[0.98]"
+                  >
+                    <span className="text-base">{prompt.emoji}</span>
+                    <p className="text-xs mt-1 text-foreground leading-snug">{prompt.text}</p>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {messages.map((msg, i) => (

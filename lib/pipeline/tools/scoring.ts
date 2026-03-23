@@ -53,6 +53,7 @@ export const runScoring = async (
         '{"feasibility": 3, "impact": 4, "effort": 2, "originality": 5, "comment": "評価理由の説明"}',
       ].join('\n'),
       aiType: input.aiType,
+      customInstruction: input.customInstruction,
     })
 
     if (!response.stubbed) {

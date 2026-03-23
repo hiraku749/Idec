@@ -27,6 +27,7 @@ export default function EnhancePage() {
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<EnhanceResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [customInstruction, setCustomInstruction] = useState('')
 
   // ノート一覧取得
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function EnhancePage() {
           noteId: selectedNoteId,
           aiType,
           mode,
+          ...(customInstruction.trim() ? { customInstruction: customInstruction.trim() } : {}),
         }),
       })
 
@@ -84,7 +86,7 @@ export default function EnhancePage() {
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       {/* ヘッダー */}
       <div>
-        <h1 className="text-2xl font-bold">文章増強</h1>
+        <h1 className="text-2xl font-bold">ブースト</h1>
         <p className="text-sm text-muted-foreground mt-1">
           ノートの文章をAIがより明確で読みやすく改善します
         </p>
@@ -179,6 +181,19 @@ export default function EnhancePage() {
                 </p>
               </button>
             </div>
+          </div>
+
+          {/* 追加指示 */}
+          <div>
+            <label className="text-sm font-medium block mb-1.5">追加指示（任意）</label>
+            <textarea
+              value={customInstruction}
+              onChange={(e) => setCustomInstruction(e.target.value)}
+              placeholder="例: 箇条書きで / 英語で / 具体例を含めて"
+              className="w-full text-sm rounded-lg border bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+              rows={2}
+              maxLength={500}
+            />
           </div>
 
           {/* 実行ボタン */}

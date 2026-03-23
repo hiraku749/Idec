@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { NoteCard } from '@/components/notes/note-card'
-import { FileText } from 'lucide-react'
+import { FileText, Map } from 'lucide-react'
 import type { ProjectStatus } from '@/types'
 import { ProjectActions } from './project-actions'
 import { LinkNotes } from './link-notes'
@@ -42,8 +42,17 @@ export default async function ProjectDetailPage({
     .order('updated_at', { ascending: false })
     .limit(20)
 
+  // 戦略マップ（ロードマップ）
+  const { data: roadmaps } = await supabase
+    .from('roadmaps')
+    .select('id, title, structured_text, created_at')
+    .eq('project_id', params.id)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
   const statusInfo = STATUS_LABELS[(project.status as ProjectStatus) ?? 'planning']
   const hasNotes = (notes ?? []).length > 0
+  const hasRoadmaps = (roadmaps ?? []).length > 0
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
@@ -98,6 +107,45 @@ export default async function ProjectDetailPage({
           </div>
         )}
       </div>
+
+      {/* 戦略マップ */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+            <Map className="w-4 h-4" /> 戦略マップ
+          </h2>
+          <Link
+            href="/roadmap"
+            className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/80 transition-all"
+          >
+            + 新規生成
+          </Link>
+        </div>
+        {hasRoadmaps ? (
+          <div className="space-y-3">
+            {(roadmaps ?? []).map((rm) => (
+              <details key={rm.id} className="border rounded-lg bg-card">
+                <summary className="flex items-center justify-between px-4 py-3 cursor-pointer text-sm font-medium hover:bg-accent/50 rounded-lg">
+                  <span>{rm.title}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(rm.created_at as string).toLocaleDateString('ja-JP')}
+                  </span>
+                </summary>
+                <pre className="whitespace-pre-wrap text-sm leading-relaxed px-4 pb-4 pt-2 text-muted-foreground overflow-x-auto">
+                  {rm.structured_text as string}
+                </pre>
+              </details>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 border rounded-lg text-muted-foreground">
+            <p className="text-sm">まだ戦略マップがありません</p>
+            <Link href="/roadmap" className="text-xs underline mt-1 inline-block">
+              戦略マップを生成する
+            </Link>
+          </div>
+        )}
+      </section>
 
       {/* ノート一覧 */}
       <section>

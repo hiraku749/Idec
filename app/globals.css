@@ -9,6 +9,25 @@
 }
 
 @layer base {
+  /* ボタン押下の即時視覚フィードバック */
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:not([disabled]):active {
+    transform: scale(0.97);
+    opacity: 0.85;
+    transition: transform 80ms ease, opacity 80ms ease;
+  }
+  /* transition が既にある要素は上書きしない */
+  .transition-all:active,
+  .transition:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+  }
+}
+
+@layer base {
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
@@ -89,6 +108,144 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ── Glass & Depth ─────────────────────────────── */
+.glass {
+  background: hsl(var(--card) / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-subtle {
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── Enhanced Shadows ──────────────────────────── */
+.shadow-soft {
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.08), 0 4px 16px -4px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-float {
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12), 0 8px 24px -6px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.05), 0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+:is(.dark) .shadow-soft {
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.3), 0 4px 16px -4px rgba(0, 0, 0, 0.25);
+}
+
+:is(.dark) .shadow-float {
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 8px 24px -6px rgba(0, 0, 0, 0.35);
+}
+
+:is(.dark) .shadow-glow {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2), 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Gradient Text ─────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--tw-gradient-from, currentColor), var(--tw-gradient-to, currentColor));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Hover Card Effect ─────────────────────────── */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.15);
+}
+
+:is(.dark) .hover-lift:hover {
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Pulse Dot (status indicator) ──────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ── Slide animations ──────────────────────────── */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.2s ease-out;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.08) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Better Scrollbar ──────────────────────────── */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* ── Focus Ring ────────────────────────────────── */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: var(--radius);
 }
 
 /* ===== Note Editor Styles ===== */

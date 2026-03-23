@@ -70,6 +70,7 @@ export const runIncubator = async (
         '}',
       ].join('\n'),
       aiType: input.aiType,
+      customInstruction: input.customInstruction,
     })
 
     if (!response.stubbed) {

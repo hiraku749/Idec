@@ -47,6 +47,7 @@ export const runRoadmap = async (
       userMessage:
         'このプロジェクトの実行ロードマップを作成してください。具体的なステップ、順序、依存関係を含めてください。',
       aiType: input.aiType,
+      customInstruction: input.customInstruction,
     })
 
     // 4. 使用回数カウント

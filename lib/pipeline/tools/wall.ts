@@ -63,6 +63,7 @@ export const runWall = async (
       userMessage: input.message,
       aiType: input.aiType,
       customInstruction: input.customInstruction,
+      systemPromptOverride: input.systemPromptOverride,
     })
 
     // 6. 使用回数カウント

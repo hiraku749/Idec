@@ -9,6 +9,7 @@ const wallSchema = z.object({
   aiType: z.union([z.literal('rational'), z.literal('balanced'), z.literal('ethical')]).default('balanced'),
   projectId: z.string().uuid().optional(),
   customInstruction: z.string().max(1000).optional(),
+  personaId: z.string().uuid().optional(),
 })
 
 // POST /api/wall — 壁打ちメッセージ送信
@@ -25,6 +26,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
   }
 
+  // カスタム人格のシステムプロンプトを解決
+  let systemPromptOverride: string | undefined
+  if (parsed.data.personaId) {
+    const { data: persona } = await supabase
+      .from('ai_personas')
+      .select('system_prompt')
+      .eq('id', parsed.data.personaId)
+      .eq('user_id', user.id)
+      .single()
+    if (persona) systemPromptOverride = persona.system_prompt as string
+  }
+
   const result = await runWall({
     userId: user.id,
     message: parsed.data.message,
@@ -32,6 +45,7 @@ export async function POST(request: Request) {
     aiType: parsed.data.aiType,
     projectId: parsed.data.projectId,
     customInstruction: parsed.data.customInstruction,
+    systemPromptOverride,
   })
 
   if (!result.success) {

@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { NoteList } from '@/components/notes/note-list'
 import { SearchBar } from '@/components/shared/search-bar'
+import { UrlClipButton } from '@/components/notes/url-clip-button'
+import { ImportButton } from '@/components/notes/import-button'
 import { Plus } from 'lucide-react'
 import type { NoteTag } from '@/types'
 
@@ -46,13 +48,17 @@ export default async function NotesPage({ searchParams }: PageProps) {
           {isDeleted ? 'ゴミ箱' : isArchived ? 'アーカイブ' : 'ノート'}
         </h1>
         {!isDeleted && !isArchived && (
-          <Link
-            href="/notes/new"
-            className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-3 hover:bg-primary/80 transition-all active:scale-95"
-          >
-            <Plus className="w-4 h-4" />
-            新規作成
-          </Link>
+          <div className="flex items-center gap-2">
+            <ImportButton />
+            <UrlClipButton />
+            <Link
+              href="/notes/new"
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-transparent bg-primary text-primary-foreground text-sm font-medium h-8 px-3 hover:bg-primary/80 transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              新規作成
+            </Link>
+          </div>
         )}
       </div>
 

@@ -11,6 +11,7 @@ const enhanceSchema = z.object({
   mode: z
     .union([z.literal('replace'), z.literal('new-note')])
     .default('new-note'),
+  customInstruction: z.string().max(500).optional(),
 })
 
 // POST /api/enhance — 文章増強
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
     noteId: parsed.data.noteId,
     aiType: parsed.data.aiType,
     mode: parsed.data.mode,
+    customInstruction: parsed.data.customInstruction,
   })
 
   if (!result.success) {

@@ -9,6 +9,7 @@ const swotSchema = z.object({
   aiType: z
     .union([z.literal('rational'), z.literal('balanced'), z.literal('ethical')])
     .default('balanced'),
+  customInstruction: z.string().max(500).optional(),
 })
 
 // POST /api/swot — SWOT分析生成
@@ -30,6 +31,7 @@ export async function POST(request: Request) {
     noteId: parsed.data.noteId,
     projectId: parsed.data.projectId,
     aiType: parsed.data.aiType,
+    customInstruction: parsed.data.customInstruction,
   })
 
   if (!result.success) {

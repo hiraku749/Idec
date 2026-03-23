@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { Copy, TrendingUp, Cpu, Briefcase, ShoppingCart, DollarSign } from 'lucide-react'
 import type { OpponentRole } from '@/lib/pipeline'
 
 interface NoteItem {
@@ -8,6 +10,14 @@ interface NoteItem {
   title: string
   tag: string | null
   updated_at: string
+}
+
+const ROLE_ICONS: Record<OpponentRole, React.ReactNode> = {
+  marketer:  <TrendingUp className="w-4 h-4" />,
+  engineer:  <Cpu className="w-4 h-4" />,
+  executive: <Briefcase className="w-4 h-4" />,
+  consumer:  <ShoppingCart className="w-4 h-4" />,
+  investor:  <DollarSign className="w-4 h-4" />,
 }
 
 const ROLES: { value: OpponentRole; label: string; description: string }[] = [
@@ -150,19 +160,70 @@ export default function OpponentPage() {
         </div>
       )}
 
-      {result && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold">批評結果</h2>
-            <span className="text-xs border rounded-full px-2 py-0.5 text-muted-foreground">
-              {result.role}視点
-            </span>
+      {result && (() => {
+        const matchedRole = ROLES.find((r) => r.label === result.role || r.value === result.role)
+        const roleIcon = matchedRole ? ROLE_ICONS[matchedRole.value] : null
+        const paragraphs = result.critique.split(/\n\n+/).filter((p) => p.trim())
+
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold">批評結果</h2>
+                <span className="inline-flex items-center gap-1.5 text-xs border rounded-full px-2.5 py-1 bg-primary/10 text-primary font-medium">
+                  {roleIcon}
+                  {matchedRole?.label ?? result.role}視点
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  void navigator.clipboard.writeText(result.critique)
+                  toast.success('クリップボードにコピーしました')
+                }}
+                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border font-medium hover:bg-accent transition-all"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                コピー
+              </button>
+            </div>
+            <div className="rounded-lg border bg-card p-5 space-y-4">
+              {paragraphs.map((para, idx) => {
+                const trimmed = para.trim()
+                // 見出し行を検出
+                const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)/)
+                if (headingMatch) {
+                  return (
+                    <h3 key={idx} className="text-sm font-bold text-foreground pt-1">
+                      {headingMatch[2]}
+                    </h3>
+                  )
+                }
+                // 箇条書き段落
+                const lines = trimmed.split('\n')
+                const isList = lines.every((l) => /^[-*]\s/.test(l.trim()) || !l.trim())
+                if (isList) {
+                  return (
+                    <ul key={idx} className="space-y-1.5">
+                      {lines.filter((l) => l.trim()).map((l, li) => (
+                        <li key={li} className="text-sm leading-relaxed text-foreground/90 pl-3 border-l-2 border-muted">
+                          {l.trim().replace(/^[-*]\s/, '')}
+                        </li>
+                      ))}
+                    </ul>
+                  )
+                }
+                // 通常段落
+                return (
+                  <p key={idx} className="text-sm leading-relaxed text-foreground/90">
+                    {trimmed}
+                  </p>
+                )
+              })}
+            </div>
           </div>
-          <div className="rounded-lg border bg-card p-4">
-            <pre className="text-sm whitespace-pre-wrap leading-relaxed font-sans">{result.critique}</pre>
-          </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }

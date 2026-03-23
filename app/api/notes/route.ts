@@ -16,6 +16,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const search = searchParams.get('search')
   const tag = searchParams.get('tag')
+  const userTag = searchParams.get('user_tag')
   const isArchived = searchParams.get('is_archived') === 'true'
   const isDeleted = searchParams.get('is_deleted') === 'true'
 
@@ -30,6 +31,10 @@ export async function GET(request: Request) {
 
   if (tag) {
     query = query.eq('tag', tag)
+  }
+
+  if (userTag) {
+    query = query.contains('user_tags', [userTag])
   }
 
   if (search) {

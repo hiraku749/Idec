@@ -51,7 +51,8 @@ export const runDiagram = async (
       tool: 'diagram',
       context,
       userMessage: FORMAT_PROMPTS[input.format],
-      aiType: 'rational',
+      aiType: input.aiType ?? 'rational',
+      customInstruction: input.customInstruction,
     })
 
     // 4. 使用回数カウント

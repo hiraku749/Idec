@@ -122,6 +122,7 @@ export default function ScoringPage() {
   const [selectedNoteId, setSelectedNoteId] = useState('')
   const [loading, setLoading] = useState(false)
   const [scores, setScores] = useState<ScoreResult | null>(null)
+  const [customInstruction, setCustomInstruction] = useState('')
 
   useEffect(() => {
     fetch('/api/notes?tag=アイデア')
@@ -141,7 +142,7 @@ export default function ScoringPage() {
       const res = await fetch('/api/scoring', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ noteId: selectedNoteId }),
+        body: JSON.stringify({ noteId: selectedNoteId, ...(customInstruction.trim() ? { customInstruction: customInstruction.trim() } : {}) }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -169,7 +170,7 @@ export default function ScoringPage() {
       </p>
 
       {/* ノート選択 */}
-      <div className="flex gap-3 mb-6">
+      <div className="flex gap-3 mb-4">
         <select
           value={selectedNoteId}
           onChange={(e) => setSelectedNoteId(e.target.value)}
@@ -180,7 +181,22 @@ export default function ScoringPage() {
             <option key={n.id} value={n.id}>{n.title}</option>
           ))}
         </select>
-        <Button onClick={handleScore} disabled={!selectedNoteId || loading}>
+      </div>
+
+      <div className="mb-4">
+        <label className="text-sm font-medium block mb-1.5">追加指示（任意）</label>
+        <textarea
+          value={customInstruction}
+          onChange={(e) => setCustomInstruction(e.target.value)}
+          placeholder="例: 箇条書きで / 英語で / 具体例を含めて"
+          className="w-full text-sm rounded-lg border bg-background px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+          rows={2}
+          maxLength={500}
+        />
+      </div>
+
+      <div className="mb-6">
+        <Button onClick={handleScore} disabled={!selectedNoteId || loading} className="w-full">
           {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-1" /> 分析中...</> : 'スコアリング'}
         </Button>
       </div>

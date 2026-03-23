@@ -56,7 +56,8 @@ export const runContextTool = async (
       tool: 'context',
       context,
       userMessage: prompt,
-      aiType: 'balanced',
+      aiType: input.aiType ?? 'balanced',
+      customInstruction: input.customInstruction,
     })
 
     // 4. 使用回数カウント

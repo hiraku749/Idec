@@ -13,6 +13,7 @@ const reviewSchema = z.object({
   aiType: z
     .union([z.literal('rational'), z.literal('balanced'), z.literal('ethical')])
     .default('balanced'),
+  customInstruction: z.string().max(500).optional(),
 })
 
 // GET /api/incubator — インキュベーション一覧
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
       userId: user.id,
       noteId: incubation.note_id,
       aiType: parsed.data.aiType,
+      customInstruction: parsed.data.customInstruction,
     })
 
     if (!result.success) {

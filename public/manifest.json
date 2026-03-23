@@ -1,0 +1,40 @@
+{
+  "name": "Idec — アイデアを実行に変えるAIプラットフォーム",
+  "short_name": "Idec",
+  "description": "ノート・AI・プロジェクト管理を統合したAIプラットフォーム",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "portrait-primary",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "新規ノート",
+      "short_name": "新規",
+      "url": "/notes/new",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ダッシュボード",
+      "short_name": "ダッシュ",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["productivity", "utilities"]
+}

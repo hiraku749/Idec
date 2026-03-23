@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Sidebar } from '@/components/shared/sidebar'
 import { MobileNav } from '@/components/shared/mobile-nav'
 import { QuickCapture } from '@/components/shared/quick-capture'
+import { CommandPalette } from '@/components/shared/command-palette'
 
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -58,6 +59,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
 
       {/* グローバル: クイックキャプチャモーダル（Cmd+Shift+N） */}
       <QuickCapture />
+
+      {/* グローバル: コマンドパレット（Cmd+K） */}
+      <CommandPalette />
     </div>
   )
 }

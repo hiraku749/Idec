@@ -10,6 +10,10 @@ const contextSchema = z.object({
     z.literal('condense'),
     z.literal('restructure'),
   ]),
+  aiType: z
+    .union([z.literal('rational'), z.literal('balanced'), z.literal('ethical')])
+    .default('balanced'),
+  customInstruction: z.string().max(500).optional(),
 })
 
 // POST /api/context — コンテキストエンジニアリング
@@ -30,6 +34,8 @@ export async function POST(request: Request) {
     userId: user.id,
     noteIds: parsed.data.noteIds,
     goal: parsed.data.goal,
+    aiType: parsed.data.aiType,
+    customInstruction: parsed.data.customInstruction,
   })
 
   if (!result.success) {

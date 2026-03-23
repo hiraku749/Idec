@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import type { DiscussionMessage } from '@/types'
 
 // POST /api/discussions/[id]/ai-reply — AIがディスカッションに返答を投稿
@@ -49,23 +49,26 @@ export async function POST(
     .join('\n')
 
   // AIに返答を生成させる
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.OPENAI_API_KEY
   let aiContent: string
 
   if (!apiKey) {
     aiContent = `（スタブ）ディスカッション「${discussion.title}」の議論を読みました。皆さんの意見は興味深いですね。`
   } else {
-    const client = new Anthropic({ apiKey })
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const client = new OpenAI({ apiKey })
+    const response = await client.chat.completions.create({
+      model: 'gpt-4o',
       max_tokens: 1024,
-      system: [
-        'あなたはディスカッションに参加するAIアシスタントです。',
-        '参加者の議論を読み、建設的な意見・視点・提案を日本語で1〜3文で返してください。',
-        '議論を深める質問や、見落とされている観点を指摘することも歓迎します。',
-        '返答は簡潔にまとめ、断定的になりすぎず対話を促すトーンにしてください。',
-      ].join('\n'),
       messages: [
+        {
+          role: 'system',
+          content: [
+            'あなたはディスカッションに参加するAIアシスタントです。',
+            '参加者の議論を読み、建設的な意見・視点・提案を日本語で1〜3文で返してください。',
+            '議論を深める質問や、見落とされている観点を指摘することも歓迎します。',
+            '返答は簡潔にまとめ、断定的になりすぎず対話を促すトーンにしてください。',
+          ].join('\n'),
+        },
         {
           role: 'user',
           content: `ディスカッションのテーマ: ${discussion.title}\n\n直近の会話:\n${conversationText}\n\n上記の流れを受けて、AIとして参加者へ返答してください。`,
@@ -73,10 +76,7 @@ export async function POST(
       ],
     })
 
-    aiContent = response.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-      .map((b) => b.text)
-      .join('\n')
+    aiContent = response.choices[0]?.message?.content ?? ''
   }
 
   // AIメッセージを投稿（is_ai: true）
